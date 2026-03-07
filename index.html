@@ -1,0 +1,1367 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=2.0">
+<title>AI는 어떻게 생각하는가? — 1회차 복습</title>
+<style>
+:root {
+  --bg: #f5f7fc;
+  --card: #ffffff;
+  --text: #111827;
+  --text-sub: #4B5563;
+  --purple: #7C3AED;
+  --purple-bg: #F3EEFF;
+  --purple-border: #C4B5FD;
+  --purple-dark: #5B21B6;
+  --blue: #1D4ED8;
+  --blue-bg: #EFF6FF;
+  --green: #065F46;
+  --green-bg: #ECFDF5;
+  --green-border: #6EE7B7;
+  --red: #991B1B;
+  --red-bg: #FEF2F2;
+  --red-border: #FCA5A5;
+  --orange: #92400E;
+  --orange-bg: #FFFBEB;
+  --orange-border: #FCD34D;
+  --border: #E5E7EB;
+  --shadow: 0 2px 10px rgba(0,0,0,0.08);
+}
+
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color: rgba(124,58,237,0.12); }
+
+body {
+  font-family: 'Apple SD Gothic Neo', 'Malgun Gothic', '맑은 고딕', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 23px;
+  line-height: 1.8;
+  padding-bottom: 5rem;
+}
+
+/* ── 헤더 ── */
+.hero {
+  background: linear-gradient(140deg, #1e0050 0%, #4c1d95 55%, #7c3aed 100%);
+  color: #fff;
+  padding: 2rem 1.3rem 1.6rem;
+  position: relative;
+  overflow: hidden;
+}
+.hero::before {
+  content: '';
+  position: absolute;
+  width: 260px; height: 260px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.05);
+  top: -80px; right: -60px;
+}
+.hero::after {
+  content: '';
+  position: absolute;
+  width: 140px; height: 140px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.04);
+  bottom: -50px; left: 20px;
+}
+.hero-badge {
+  display: inline-block;
+  background: rgba(255,255,255,0.18);
+  color: #DDD6FE;
+  font-size: 16px; font-weight: 700;
+  padding: 4px 13px; border-radius: 20px;
+  margin-bottom: 10px;
+  letter-spacing: 0.05em;
+}
+.hero h1 {
+  font-size: 30px; font-weight: 900;
+  line-height: 1.35; margin-bottom: 6px;
+}
+.hero h1 span { color: #C4B5FD; }
+.hero-sub {
+  font-size: 18px; color: rgba(255,255,255,0.75);
+  margin-bottom: 1rem;
+}
+.hero-stats {
+  display: flex; gap: 1rem; flex-wrap: wrap;
+}
+.stat {
+  background: rgba(255,255,255,0.13);
+  border-radius: 12px;
+  padding: 0.5rem 1rem;
+  font-size: 16px; font-weight: 700;
+  color: #EDE9FE;
+}
+.stat strong { color: #fff; font-size: 24px; display: block; line-height: 1; margin-bottom: 2px; }
+
+/* ── TTS 바 ── */
+.tts-bar {
+  background: var(--card);
+  border-bottom: 2px solid var(--purple-border);
+  padding: 0.7rem 1.1rem;
+  display: flex; align-items: center; gap: 0.7rem; flex-wrap: wrap;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+}
+.tts-label { font-size: 17px; font-weight: 700; color: var(--purple); flex-shrink: 0; }
+.speed-btns { display: flex; gap: 0.35rem; }
+.speed-btn {
+  background: var(--purple-bg); border: 2px solid var(--purple-border);
+  border-radius: 8px; padding: 0.35rem 0.8rem;
+  font-size: 16px; font-weight: 700; color: var(--purple);
+  cursor: pointer; transition: all 0.15s;
+}
+.speed-btn.active { background: var(--purple); color: #fff; border-color: var(--purple); }
+.stop-btn {
+  margin-left: auto;
+  background: var(--red-bg); border: 2px solid var(--red-border);
+  border-radius: 8px; padding: 0.35rem 0.9rem;
+  font-size: 16px; font-weight: 700; color: var(--red);
+  cursor: pointer;
+}
+.now-playing {
+  width: 100%; font-size: 15px; color: var(--purple);
+  font-weight: 600; display: none; align-items: center; gap: 0.4rem;
+  margin-top: 0.2rem;
+}
+.now-playing.show { display: flex; }
+.pulse {
+  width: 9px; height: 9px; background: var(--purple);
+  border-radius: 50%;
+  animation: pulse 0.7s infinite alternate;
+}
+@keyframes pulse { from { opacity: 1; transform: scale(1); } to { opacity: 0.3; transform: scale(0.6); } }
+
+/* ── 탭 ── */
+.tab-nav {
+  position: sticky; top: 0; z-index: 100;
+  background: #fff;
+  border-bottom: 3px solid var(--purple-border);
+  display: flex; overflow-x: auto;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.07);
+}
+.tab-nav::-webkit-scrollbar { display: none; }
+.tab-btn {
+  flex-shrink: 0;
+  padding: 0.9rem 1rem;
+  font-size: 18px; font-weight: 700;
+  color: #9CA3AF; background: none;
+  border: none; border-bottom: 4px solid transparent;
+  cursor: pointer; white-space: nowrap;
+  transition: all 0.18s;
+}
+.tab-btn.active {
+  color: var(--purple); border-bottom-color: var(--purple);
+  background: var(--purple-bg);
+}
+
+/* ── 패널 ── */
+.panels { padding: 1rem 1rem 2rem; }
+.panel { display: none; }
+.panel.active { display: block; animation: fadeUp 0.22s ease; }
+@keyframes fadeUp { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }
+
+/* ── 공통 카드 ── */
+.card {
+  background: var(--card);
+  border: 1.5px solid var(--border);
+  border-radius: 18px;
+  padding: 1.3rem 1.2rem;
+  margin-bottom: 1.2rem;
+  box-shadow: var(--shadow);
+}
+.card.purple { border-left: 5px solid var(--purple); }
+.card.green { border-left: 5px solid #10B981; }
+.card.orange { border-left: 5px solid #F59E0B; }
+.card.red { border-left: 5px solid #EF4444; }
+.card.blue { border-left: 5px solid #3B82F6; }
+
+.sec-tag {
+  display: inline-block; font-size: 15px; font-weight: 700;
+  letter-spacing: 0.07em; color: var(--purple);
+  margin-bottom: 4px;
+}
+.sec-title {
+  font-size: 26px; font-weight: 900; color: var(--text);
+  margin-bottom: 1rem; line-height: 1.3;
+}
+
+/* 설명 버튼 */
+.explain-btn {
+  display: flex; align-items: center; gap: 12px;
+  width: 100%; padding: 1rem 1.1rem;
+  background: var(--purple-bg); border: 2px solid var(--purple-border);
+  border-radius: 15px; cursor: pointer;
+  font-family: inherit; margin-bottom: 10px;
+  transition: all 0.18s; text-align: left;
+}
+.explain-btn:active { transform: scale(0.98); }
+.eb-icon {
+  width: 48px; height: 48px; border-radius: 14px; flex-shrink: 0;
+  background: linear-gradient(135deg, var(--purple), var(--purple-dark));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 22px; box-shadow: 0 3px 10px rgba(124,58,237,0.3);
+}
+.eb-icon.blue-ic { background: linear-gradient(135deg, #3B82F6, #1D4ED8); box-shadow: 0 3px 10px rgba(59,130,246,0.3); }
+.eb-icon.green-ic { background: linear-gradient(135deg, #10B981, #065F46); box-shadow: 0 3px 10px rgba(16,185,129,0.3); }
+.eb-icon.orange-ic { background: linear-gradient(135deg, #F59E0B, #92400E); box-shadow: 0 3px 10px rgba(245,158,11,0.3); }
+.eb-icon.red-ic { background: linear-gradient(135deg, #EF4444, #991B1B); box-shadow: 0 3px 10px rgba(239,68,68,0.3); }
+.eb-body { flex: 1; }
+.eb-title { font-size: 19px; font-weight: 900; color: var(--purple-dark); }
+.eb-sub { font-size: 15px; color: var(--text-sub); margin-top: 2px; }
+.eb-arr { font-size: 20px; color: var(--purple); }
+
+.explain-btn.var-blue { background: var(--blue-bg); border-color: #93C5FD; }
+.explain-btn.var-blue .eb-title { color: var(--blue); }
+.explain-btn.var-blue .eb-arr { color: var(--blue); }
+.explain-btn.var-green { background: var(--green-bg); border-color: var(--green-border); }
+.explain-btn.var-green .eb-title { color: var(--green); }
+.explain-btn.var-green .eb-arr { color: #10B981; }
+.explain-btn.var-orange { background: var(--orange-bg); border-color: var(--orange-border); }
+.explain-btn.var-orange .eb-title { color: var(--orange); }
+.explain-btn.var-orange .eb-arr { color: #D97706; }
+.explain-btn.var-red { background: var(--red-bg); border-color: var(--red-border); }
+.explain-btn.var-red .eb-title { color: var(--red); }
+.explain-btn.var-red .eb-arr { color: #EF4444; }
+
+/* AI 응답 박스 */
+.ai-box {
+  background: linear-gradient(135deg, #F3EEFF, #EDE9FE);
+  border-radius: 16px; padding: 1.2rem;
+  margin-bottom: 12px; border-left: 4px solid var(--purple);
+  display: none;
+}
+.ai-box.show { display: block; }
+.ai-hd { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.ai-av {
+  width: 38px; height: 38px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--purple), var(--purple-dark));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; flex-shrink: 0;
+}
+.ai-nm { font-size: 16px; font-weight: 900; color: var(--purple-dark); }
+.ai-lbl { font-size: 14px; color: var(--text-sub); }
+.ai-text { font-size: 22px; line-height: 1.9; color: var(--text); font-weight: 500; white-space: pre-wrap; }
+.ai-tts-row {
+  display: flex; gap: 8px; margin-top: 12px;
+  padding-top: 10px; border-top: 1px solid rgba(124,58,237,0.15);
+}
+.tts-play-btn {
+  display: flex; align-items: center; gap: 6px;
+  padding: 9px 18px; border-radius: 10px;
+  background: var(--purple); color: #fff; border: none;
+  font-family: inherit; font-size: 16px; font-weight: 700;
+  cursor: pointer;
+}
+.tts-stop-btn {
+  display: flex; align-items: center; gap: 6px;
+  padding: 9px 14px; border-radius: 10px;
+  background: #fff; color: var(--red); border: 2px solid var(--red-border);
+  font-family: inherit; font-size: 16px; font-weight: 700;
+  cursor: pointer;
+}
+
+/* 핵심 포인트 리스트 */
+.point-list { list-style: none; }
+.point-item {
+  display: flex; align-items: flex-start; gap: 12px;
+  padding: 12px 0; border-bottom: 1px solid var(--border);
+  font-size: 20px; line-height: 1.7; color: var(--text-sub);
+}
+.point-item:last-child { border-bottom: none; }
+.pdot {
+  width: 32px; height: 32px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 15px; font-weight: 900; flex-shrink: 0; margin-top: 2px;
+}
+
+/* 비교표 */
+.compare-tbl { width: 100%; border-collapse: collapse; font-size: 18px; margin-top: 4px; }
+.compare-tbl th {
+  padding: 10px 12px; background: var(--purple-bg); color: var(--purple-dark);
+  font-weight: 900; text-align: center;
+}
+.compare-tbl td {
+  padding: 11px 12px; border-bottom: 1px solid var(--border);
+  line-height: 1.65; vertical-align: top;
+}
+.compare-tbl tr:last-child td { border-bottom: none; }
+.bad { color: #DC2626; font-weight: 700; }
+.good { color: var(--green); font-weight: 700; }
+
+/* 타임라인 */
+.timeline { position: relative; padding-left: 2rem; margin-top: 0.5rem; }
+.timeline::before {
+  content: ''; position: absolute; left: 9px; top: 0; bottom: 0;
+  width: 2px; background: var(--purple-border);
+}
+.tl-item {
+  position: relative; margin-bottom: 1.1rem;
+}
+.tl-dot {
+  position: absolute; left: -2rem; top: 4px;
+  width: 18px; height: 18px; border-radius: 50%;
+  background: var(--purple); border: 3px solid #fff;
+  box-shadow: 0 0 0 2px var(--purple-border);
+}
+.tl-dot.star { background: #F59E0B; box-shadow: 0 0 0 2px #FCD34D; }
+.tl-dot.big-star { background: #EF4444; box-shadow: 0 0 0 2px #FCA5A5; width: 22px; height: 22px; left: calc(-2rem + -2px); }
+.tl-year { font-size: 16px; font-weight: 700; color: var(--text-sub); margin-bottom: 2px; }
+.tl-text { font-size: 18px; font-weight: 600; color: var(--text); line-height: 1.55; }
+
+/* 5단계 흐름 */
+.steps { display: flex; flex-direction: column; gap: 0.7rem; }
+.step-item {
+  display: flex; align-items: flex-start; gap: 14px;
+  background: var(--card); border: 1.5px solid var(--border);
+  border-radius: 14px; padding: 0.9rem 1rem;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+}
+.step-num {
+  width: 40px; height: 40px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--purple), var(--purple-dark));
+  color: #fff; font-size: 18px; font-weight: 900;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.step-title { font-size: 20px; font-weight: 900; color: var(--text); margin-bottom: 3px; }
+.step-desc { font-size: 17px; color: var(--text-sub); line-height: 1.6; }
+.step-next { font-size: 15px; color: var(--purple); font-weight: 700; margin-top: 3px; }
+
+/* 강조 박스 */
+.highlight-box {
+  background: linear-gradient(135deg, var(--purple), var(--purple-dark));
+  border-radius: 18px; padding: 1.3rem 1.2rem; margin-bottom: 1.2rem;
+}
+.hl-label { color: rgba(255,255,255,0.7); font-size: 15px; margin-bottom: 6px; }
+.hl-text { color: #fff; font-size: 22px; font-weight: 900; line-height: 1.6; }
+
+/* 퀴즈 */
+.score-banner {
+  background: var(--purple-bg); border-radius: 16px;
+  padding: 1.1rem 1.3rem; text-align: center; margin-bottom: 1.2rem;
+  border: 2px solid var(--purple-border);
+}
+.sc-label { font-size: 16px; color: var(--text-sub); margin-bottom: 3px; }
+.sc-num { font-size: 44px; font-weight: 900; color: var(--purple-dark); }
+.sc-of { font-size: 20px; color: var(--text-sub); }
+.sc-msg { font-size: 17px; color: var(--text-sub); margin-top: 4px; }
+
+.quiz-card {
+  background: var(--card); border: 1.5px solid var(--border);
+  border-radius: 18px; padding: 1.3rem 1.2rem;
+  margin-bottom: 1.1rem; box-shadow: var(--shadow);
+}
+.q-num { font-size: 15px; font-weight: 700; color: var(--purple); letter-spacing: 1px; margin-bottom: 7px; }
+.q-text { font-size: 21px; font-weight: 700; line-height: 1.6; color: var(--text); margin-bottom: 14px; }
+.q-opts { display: flex; flex-direction: column; gap: 9px; }
+.q-opt {
+  padding: 14px 16px; border-radius: 12px; border: 2px solid var(--border);
+  background: #fff; font-family: inherit; font-size: 19px;
+  color: var(--text-sub); cursor: pointer; text-align: left;
+  transition: all 0.16s; font-weight: 500; line-height: 1.55;
+}
+.q-opt:active { transform: scale(0.98); }
+.q-opt.correct { border-color: #10B981; background: var(--green-bg); color: var(--green); font-weight: 700; }
+.q-opt.wrong { border-color: #EF4444; background: var(--red-bg); color: var(--red); }
+.q-fb {
+  margin-top: 10px; padding: 12px 14px; border-radius: 12px;
+  font-size: 18px; font-weight: 500; line-height: 1.65; display: none;
+}
+.q-fb.show { display: block; }
+.q-fb.ok { background: var(--green-bg); color: var(--green); }
+.q-fb.ng { background: var(--red-bg); color: var(--red); }
+
+.reset-btn {
+  display: block; width: 100%; padding: 15px;
+  background: var(--purple); color: #fff; border: none;
+  border-radius: 14px; font-family: inherit; font-size: 20px;
+  font-weight: 700; cursor: pointer; margin-top: 4px;
+  box-shadow: 0 3px 10px rgba(124,58,237,0.25);
+}
+
+/* 도우미 탭 */
+.chip-group { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 1rem; }
+.chip {
+  padding: 11px 17px; border-radius: 20px; border: 2px solid var(--border);
+  background: #fff; font-family: inherit; font-size: 17px; font-weight: 500;
+  color: var(--text-sub); cursor: pointer; transition: all 0.16s;
+}
+.chip.on { border-color: var(--purple); background: var(--purple-bg); color: var(--purple-dark); font-weight: 700; }
+.chip:active { transform: scale(0.96); }
+
+.make-btn {
+  display: block; width: 100%; padding: 15px;
+  background: linear-gradient(135deg, var(--purple), var(--purple-dark));
+  color: #fff; border: none; border-radius: 14px;
+  font-family: inherit; font-size: 17px; font-weight: 700;
+  cursor: pointer; margin: 12px 0;
+  box-shadow: 0 4px 14px rgba(124,58,237,0.28);
+}
+.make-btn:active { transform: scale(0.98); }
+
+.result-box {
+  background: var(--purple-bg); border-radius: 16px; padding: 1.1rem;
+  border-left: 4px solid var(--purple);
+  font-size: 16px; line-height: 1.8; color: var(--text);
+  font-weight: 500; min-height: 80px;
+}
+.copy-btn {
+  display: none; width: 100%; padding: 14px;
+  background: #fff; color: var(--purple-dark);
+  border: 2px solid var(--purple); border-radius: 14px;
+  font-family: inherit; font-size: 18px; font-weight: 700;
+  cursor: pointer; margin-top: 10px;
+}
+
+/* 토스트 */
+.toast {
+  position: fixed; bottom: 72px; left: 50%;
+  transform: translateX(-50%) translateY(16px);
+  background: #1F2937; color: #fff;
+  padding: 12px 24px; border-radius: 26px;
+  font-size: 17px; font-weight: 700;
+  opacity: 0; transition: all 0.25s;
+  pointer-events: none; z-index: 999; white-space: nowrap;
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* 하단 바 */
+.bottom-bar {
+  position: fixed; bottom: 0; left: 0; right: 0; height: 64px;
+  background: #fff; border-top: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 100;
+}
+.b-tip { font-size: 15px; color: var(--text-sub); text-align: center; line-height: 1.5; }
+.b-tip strong { color: var(--purple-dark); }
+
+/* warn 박스 */
+.warn-box {
+  background: var(--orange-bg); border-radius: 14px;
+  padding: 14px 15px; margin-bottom: 10px;
+  border-left: 4px solid #F59E0B;
+  display: flex; gap: 10px; align-items: flex-start;
+}
+.wb-icon { font-size: 22px; flex-shrink: 0; }
+.wb-text { font-size: 18px; line-height: 1.7; color: var(--text-sub); }
+.wb-text strong { color: var(--text); display: block; margin-bottom: 2px; }
+
+/* ── 크롬 안내 모달 ── */
+.chrome-overlay {
+  position: fixed; inset: 0; z-index: 2000;
+  background: rgba(10,0,30,0.82);
+  display: flex; align-items: center; justify-content: center;
+  padding: 1rem;
+}
+.chrome-modal {
+  background: #fff; border-radius: 24px;
+  padding: 2rem 1.6rem 1.5rem;
+  max-width: 480px; width: 100%;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+  text-align: center;
+}
+.cm-title {
+  font-size: 26px; font-weight: 900; color: #1F2937;
+  margin-bottom: 0.5rem; line-height: 1.3;
+}
+.cm-sub {
+  font-size: 18px; color: #6B7280; margin-bottom: 1.4rem; line-height: 1.65;
+}
+/* 단계별 그래픽 */
+.cm-steps { display: flex; flex-direction: column; gap: 0.9rem; margin-bottom: 1.5rem; text-align: left; }
+.cm-step {
+  display: flex; align-items: flex-start; gap: 14px;
+  background: #F9FAFB; border-radius: 14px; padding: 0.9rem 1rem;
+  border: 1.5px solid #E5E7EB;
+}
+.cm-step-num {
+  width: 36px; height: 36px; border-radius: 50%; flex-shrink: 0;
+  background: linear-gradient(135deg, #7C3AED, #5B21B6);
+  color: #fff; font-size: 17px; font-weight: 900;
+  display: flex; align-items: center; justify-content: center;
+}
+.cm-step-body { flex: 1; }
+.cm-step-label { font-size: 19px; font-weight: 700; color: #374151; margin-bottom: 6px; }
+.cm-step-detail { font-size: 17px; color: #6B7280; line-height: 1.65; }
+/* URL 박스 */
+.cm-url-box {
+  background: #F3EEFF; border: 2px dashed #C4B5FD;
+  border-radius: 12px; padding: 0.85rem 1rem;
+  margin-top: 8px;
+  display: flex; flex-direction: column; gap: 10px;
+}
+.cm-url-text {
+  font-size: 15px; color: #5B21B6; font-weight: 700;
+  word-break: break-all; overflow-wrap: anywhere;
+  line-height: 1.6;
+}
+.cm-copy-url-btn {
+  width: 100%;
+  background: #7C3AED; color: #fff; border: none;
+  border-radius: 10px; padding: 12px 0;
+  font-size: 19px; font-weight: 700; cursor: pointer;
+}
+/* 브라우저 아이콘 행 */
+.cm-browsers {
+  display: flex; justify-content: center; gap: 1.5rem;
+  margin-bottom: 1.4rem;
+}
+.cm-browser {
+  display: flex; flex-direction: column; align-items: center; gap: 5px;
+}
+.cm-browser-icon { font-size: 44px; }
+.cm-browser-name { font-size: 15px; font-weight: 700; }
+.cm-browser.ok .cm-browser-name { color: #065F46; }
+.cm-browser.no .cm-browser-icon { filter: grayscale(1) opacity(0.4); }
+.cm-browser.no .cm-browser-name { color: #9CA3AF; text-decoration: line-through; }
+/* 확인 버튼 */
+.cm-ok-btn {
+  display: block; width: 100%; padding: 16px;
+  background: linear-gradient(135deg, #7C3AED, #5B21B6);
+  color: #fff; border: none; border-radius: 14px;
+  font-family: inherit; font-size: 21px; font-weight: 900;
+  cursor: pointer; box-shadow: 0 4px 14px rgba(124,58,237,0.35);
+}
+.cm-ok-btn:active { transform: scale(0.98); }
+.cm-check-row {
+  display: flex; align-items: center; gap: 8px;
+  justify-content: center; margin-top: 14px;
+  font-size: 17px; color: #6B7280; cursor: pointer;
+}
+.cm-check-row input { width: 22px; height: 22px; accent-color: #7C3AED; cursor: pointer; }
+
+@media (min-width: 640px) { .panels { max-width: 640px; margin: 0 auto; } }
+</style>
+</head>
+<body>
+
+<!-- ── 크롬 안내 모달 (처음 방문 시만) ── -->
+<div class="chrome-overlay" id="chromeOverlay">
+  <div class="chrome-modal">
+    <div class="cm-title">🌐 크롬(Chrome)으로<br>열어주세요!</div>
+    <div class="cm-sub">이 복습 앱은 <strong>크롬 브라우저</strong>에서만<br>음성 읽기(TTS)가 제대로 작동합니다</div>
+
+    <!-- 브라우저 비교 -->
+    <div class="cm-browsers">
+      <div class="cm-browser ok">
+        <div class="cm-browser-icon">🟢</div>
+        <div class="cm-browser-name">Chrome ✅</div>
+      </div>
+      <div class="cm-browser no">
+        <div class="cm-browser-icon">🦊</div>
+        <div class="cm-browser-name">Firefox</div>
+      </div>
+      <div class="cm-browser no">
+        <div class="cm-browser-icon">🧭</div>
+        <div class="cm-browser-name">Safari</div>
+      </div>
+      <div class="cm-browser no">
+        <div class="cm-browser-icon">🌀</div>
+        <div class="cm-browser-name">Edge</div>
+      </div>
+    </div>
+
+    <!-- 단계별 안내 -->
+    <div class="cm-steps">
+      <div class="cm-step">
+        <div class="cm-step-num">1</div>
+        <div class="cm-step-body">
+          <div class="cm-step-label">📋 먼저 이 주소를 복사하세요</div>
+          <div class="cm-url-box">
+            <span class="cm-url-text" id="pageUrl">이 페이지의 주소</span>
+            <button class="cm-copy-url-btn" onclick="copyPageUrl()">📋 복사</button>
+          </div>
+          <div class="cm-step-detail" style="margin-top:6px;">복사 버튼을 누르면 주소가 클립보드에 저장돼요</div>
+        </div>
+      </div>
+      <div class="cm-step">
+        <div class="cm-step-num">2</div>
+        <div class="cm-step-body">
+          <div class="cm-step-label">🌐 크롬(Chrome) 앱을 여세요</div>
+          <div class="cm-step-detail">스마트폰에서 크롬 앱을 실행하세요. 주소창을 길게 누르면 "붙여넣기"가 나타나요</div>
+        </div>
+      </div>
+      <div class="cm-step">
+        <div class="cm-step-num">3</div>
+        <div class="cm-step-body">
+          <div class="cm-step-label">✅ 주소창에 붙여넣고 이동</div>
+          <div class="cm-step-detail">붙여넣기 → Enter! 그러면 크롬에서 이 앱이 열리고 음성이 잘 들립니다 🔊</div>
+        </div>
+      </div>
+    </div>
+
+    <button class="cm-ok-btn" onclick="closeModal()">✅ 크롬에서 열었어요! 시작하기</button>
+    <label class="cm-check-row">
+      <input type="checkbox" id="dontShow"> 다음부터 이 안내 보지 않기
+    </label>
+  </div>
+</div>
+
+<!-- 헤더 -->
+<div class="hero">
+  <div class="hero-badge">📚 제1회 복습 앱</div>
+  <h1><span>AI</span>는 어떻게 생각하는가?<br>— 기초 완전 이해</h1>
+  <div class="hero-sub">LLM의 작동 원리 · 2024년 11월 4일 강의</div>
+  <div class="hero-stats">
+    <div class="stat"><strong>3</strong>핵심 차이점</div>
+    <div class="stat"><strong>5</strong>작동 단계</div>
+    <div class="stat"><strong>2017</strong>혁명의 해</div>
+  </div>
+</div>
+
+<!-- TTS 바 -->
+<div class="tts-bar">
+  <span class="tts-label">🔊 읽기 속도</span>
+  <div class="speed-btns">
+    <button class="speed-btn" onclick="setSpeed(0.7,this)">느리게</button>
+    <button class="speed-btn active" onclick="setSpeed(0.9,this)">보통</button>
+    <button class="speed-btn" onclick="setSpeed(1.1,this)">빠르게</button>
+  </div>
+  <button class="stop-btn" onclick="stopSpeech()">⏹ 멈추기</button>
+  <div class="now-playing" id="nowPlaying">
+    <div class="pulse"></div><span id="nowText">읽는 중...</span>
+  </div>
+</div>
+
+<!-- 탭 -->
+<nav class="tab-nav">
+  <button class="tab-btn active" data-tab="summary">📖 핵심정리</button>
+  <button class="tab-btn" data-tab="history">⏱ AI역사</button>
+  <button class="tab-btn" data-tab="flow">⚙️ 작동원리</button>
+  <button class="tab-btn" data-tab="quiz">✏️ 퀴즈</button>
+  <button class="tab-btn" data-tab="helper">💬 도우미</button>
+</nav>
+
+<div class="panels">
+
+<!-- ═══════════════════ 핵심정리 ═══════════════════ -->
+<div class="panel active" id="tab-summary">
+
+  <div class="card purple">
+    <div class="sec-tag">AI 강사 설명 듣기</div>
+    <div class="sec-title">버튼을 눌러 설명을 들어요</div>
+
+    <button class="explain-btn" onclick="askAI('diff',this)">
+      <div class="eb-icon">🆚</div>
+      <div class="eb-body"><div class="eb-title">AI가 전통 프로그램과 다른 점</div><div class="eb-sub">규칙 기반 vs 학습 기반 — 근본적 차이</div></div>
+      <div class="eb-arr">▶</div>
+    </button>
+    <div class="ai-box" id="resp-diff">
+      <div class="ai-hd"><div class="ai-av">👩‍🏫</div><div><div class="ai-nm">AI 강사</div><div class="ai-lbl">설명 중...</div></div></div>
+      <div class="ai-text" id="text-diff"></div>
+      <div class="ai-tts-row"><button class="tts-play-btn" onclick="speakEl('text-diff','전통 프로그램과 AI의 차이')">🔊 다시 듣기</button><button class="tts-stop-btn" onclick="stopSpeech()">⏹ 멈추기</button></div>
+    </div>
+
+    <button class="explain-btn var-blue" onclick="askAI('llm',this)">
+      <div class="eb-icon blue-ic">🧠</div>
+      <div class="eb-body"><div class="eb-title">LLM이란 무엇인가요?</div><div class="eb-sub">대규모 언어 모델 — Large, Language, Model</div></div>
+      <div class="eb-arr">▶</div>
+    </button>
+    <div class="ai-box" id="resp-llm">
+      <div class="ai-hd"><div class="ai-av">👩‍🏫</div><div><div class="ai-nm">AI 강사</div><div class="ai-lbl">설명 중...</div></div></div>
+      <div class="ai-text" id="text-llm"></div>
+      <div class="ai-tts-row"><button class="tts-play-btn" onclick="speakEl('text-llm','LLM 설명')">🔊 다시 듣기</button><button class="tts-stop-btn" onclick="stopSpeech()">⏹ 멈추기</button></div>
+    </div>
+
+    <button class="explain-btn var-green" onclick="askAI('prob',this)">
+      <div class="eb-icon green-ic">🎲</div>
+      <div class="eb-body"><div class="eb-title">왜 AI 출력은 매번 다를까요?</div><div class="eb-sub">확정적 vs 확률적 — 중요한 차이</div></div>
+      <div class="eb-arr">▶</div>
+    </button>
+    <div class="ai-box" id="resp-prob">
+      <div class="ai-hd"><div class="ai-av">👩‍🏫</div><div><div class="ai-nm">AI 강사</div><div class="ai-lbl">설명 중...</div></div></div>
+      <div class="ai-text" id="text-prob"></div>
+      <div class="ai-tts-row"><button class="tts-play-btn" onclick="speakEl('text-prob','확률적 출력 설명')">🔊 다시 듣기</button><button class="tts-stop-btn" onclick="stopSpeech()">⏹ 멈추기</button></div>
+    </div>
+
+    <button class="explain-btn var-orange" onclick="askAI('transformer',this)">
+      <div class="eb-icon orange-ic">⚡</div>
+      <div class="eb-body"><div class="eb-title">트랜스포머 — 왜 혁명이었나요?</div><div class="eb-sub">2017년 "Attention is All You Need" 논문의 충격</div></div>
+      <div class="eb-arr">▶</div>
+    </button>
+    <div class="ai-box" id="resp-transformer">
+      <div class="ai-hd"><div class="ai-av">👩‍🏫</div><div><div class="ai-nm">AI 강사</div><div class="ai-lbl">설명 중...</div></div></div>
+      <div class="ai-text" id="text-transformer"></div>
+      <div class="ai-tts-row"><button class="tts-play-btn" onclick="speakEl('text-transformer','트랜스포머 설명')">🔊 다시 듣기</button><button class="tts-stop-btn" onclick="stopSpeech()">⏹ 멈추기</button></div>
+    </div>
+
+    <button class="explain-btn var-red" onclick="askAI('limit',this)">
+      <div class="eb-icon red-ic">⚠️</div>
+      <div class="eb-body"><div class="eb-title">AI가 못 하는 것이 있나요?</div><div class="eb-sub">강점과 약점 — 할루시네이션이란?</div></div>
+      <div class="eb-arr">▶</div>
+    </button>
+    <div class="ai-box" id="resp-limit">
+      <div class="ai-hd"><div class="ai-av">👩‍🏫</div><div><div class="ai-nm">AI 강사</div><div class="ai-lbl">설명 중...</div></div></div>
+      <div class="ai-text" id="text-limit"></div>
+      <div class="ai-tts-row"><button class="tts-play-btn" onclick="speakEl('text-limit','AI 한계와 할루시네이션')">🔊 다시 듣기</button><button class="tts-stop-btn" onclick="stopSpeech()">⏹ 멈추기</button></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="sec-tag">핵심 요약</div>
+    <div class="sec-title">오늘 꼭 기억할 3가지</div>
+    <ul class="point-list">
+      <li class="point-item">
+        <div class="pdot" style="background:var(--purple-bg);color:var(--purple);">1</div>
+        AI는 규칙을 따르지 않고, <strong>경험(데이터)에서 배운 패턴으로 판단</strong>한다
+      </li>
+      <li class="point-item">
+        <div class="pdot" style="background:#EFF6FF;color:#1D4ED8;">2</div>
+        ChatGPT 같은 LLM은 <strong>확률적</strong>으로 다음 단어를 선택한다 — 매번 다를 수 있는 것이 정상이다
+      </li>
+      <li class="point-item">
+        <div class="pdot" style="background:var(--green-bg);color:var(--green);">3</div>
+        2017년 트랜스포머(어텐션 메커니즘) 발명이 AI 역사를 <strong>완전히 바꿨다</strong>
+      </li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <div class="sec-tag">비교표</div>
+    <div class="sec-title">전통 프로그램 vs AI</div>
+    <table class="compare-tbl">
+      <tr><th style="border-radius:8px 0 0 0;">전통 프로그램</th><th style="border-radius:0 8px 0 0;">AI (LLM)</th></tr>
+      <tr><td class="bad">규칙 기반</td><td class="good">학습 기반</td></tr>
+      <tr><td class="bad">프로그래머가 모든 규칙 작성</td><td class="good">데이터에서 스스로 학습</td></tr>
+      <tr><td class="bad">확정적 — 같은 입력 → 같은 출력</td><td class="good">확률적 — 같은 입력 → 다를 수 있음</td></tr>
+      <tr><td class="bad">명령어로만 소통</td><td class="good">자연어로 대화</td></tr>
+    </table>
+  </div>
+
+  <div class="highlight-box">
+    <div class="hl-label">💡 오늘의 핵심 문장</div>
+    <div class="hl-text">"AI는 명령을 따르는 기계가 아니라,<br>경험에서 배운 패턴으로 판단하는 시스템이다."</div>
+  </div>
+</div>
+
+<!-- ═══════════════════ AI 역사 ═══════════════════ -->
+<div class="panel" id="tab-history">
+  <div class="card purple">
+    <div class="sec-tag">역사</div>
+    <div class="sec-title">AI의 역사: 폭발적 발전</div>
+    <div class="timeline">
+      <div class="tl-item"><div class="tl-dot"></div><div class="tl-year">1950년대</div><div class="tl-text">튜링 테스트, AI 개념 시작</div></div>
+      <div class="tl-item"><div class="tl-dot"></div><div class="tl-year">1997년</div><div class="tl-text">IBM Deep Blue — 체스 세계 챔피언을 이김</div></div>
+      <div class="tl-item"><div class="tl-dot"></div><div class="tl-year">2011년</div><div class="tl-text">IBM Watson — 퀴즈쇼 우승</div></div>
+      <div class="tl-item"><div class="tl-dot star"></div><div class="tl-year">2012년 ⭐</div><div class="tl-text">딥러닝 혁명 시작 — 이미지 인식이 비약적으로 향상</div></div>
+      <div class="tl-item"><div class="tl-dot star"></div><div class="tl-year">2017년 ⭐⭐</div><div class="tl-text">트랜스포머 발명 "Attention is All You Need" — 모든 것이 바뀌다</div></div>
+      <div class="tl-item"><div class="tl-dot"></div><div class="tl-year">2018–2020년</div><div class="tl-text">GPT-1, GPT-2, GPT-3 등장</div></div>
+      <div class="tl-item"><div class="tl-dot big-star"></div><div class="tl-year">2022년 11월 ⭐⭐⭐</div><div class="tl-text">ChatGPT 공개 — 5일 만에 100만 명, 2개월 만에 1억 명 돌파. 역사상 가장 빠른 확산</div></div>
+      <div class="tl-item"><div class="tl-dot star"></div><div class="tl-year">2023년~현재</div><div class="tl-text">GPT-4, Claude, Gemini — AI 대중화 시대</div></div>
+    </div>
+  </div>
+
+  <div class="card blue">
+    <div class="sec-tag">핵심 질문</div>
+    <div class="sec-title">왜 ChatGPT가 충격이었나?</div>
+    <table class="compare-tbl">
+      <tr><th>이전 AI들의 한계</th><th>ChatGPT의 변화</th></tr>
+      <tr><td class="bad">특정 작업만 잘함<br>(체스, 번역, 이미지 인식)</td><td class="good">글쓰기·번역·코딩·분석·창작<br>거의 모든 것을 다 함</td></tr>
+      <tr><td class="bad">명령어 형식으로만 작동</td><td class="good">자연스러운 대화</td></tr>
+      <tr><td class="bad">대화 불가능</td><td class="good">맥락 이해 + 추론</td></tr>
+      <tr><td class="bad">맥락 이해 부족</td><td class="good">실수 인정과 수정 가능</td></tr>
+    </table>
+  </div>
+
+  <div class="card green">
+    <div class="sec-tag">AI 학습의 3단계</div>
+    <div class="sec-title">어떻게 이렇게 똑똑해졌나?</div>
+    <ul class="point-list">
+      <li class="point-item">
+        <div class="pdot" style="background:#EFF6FF;color:#1D4ED8;">1</div>
+        <div><strong style="display:block;">사전 학습 (Pre-Training)</strong>인터넷의 수천억 개 문장을 학습. "다음 단어 맞추기" 훈련을 수주~수개월 반복</div>
+      </li>
+      <li class="point-item">
+        <div class="pdot" style="background:var(--green-bg);color:var(--green);">2</div>
+        <div><strong style="display:block;">미세 조정 (Fine-Tuning)</strong>질문-답변 형식의 고품질 데이터로 대화 능력 강화 (수일~수주)</div>
+      </li>
+      <li class="point-item">
+        <div class="pdot" style="background:var(--orange-bg);color:var(--orange);">3</div>
+        <div><strong style="display:block;">인간 피드백 학습 (RLHF)</strong>사람이 AI 답변을 평가 → 유용하고 안전한 응답을 학습. 지속적으로 진행</div>
+      </li>
+    </ul>
+    <div class="warn-box" style="margin-top:1rem;">
+      <div class="wb-icon">⚠️</div>
+      <div class="wb-text"><strong>RLHF의 부작용: 할루시네이션</strong>사람 평가자가 자신감 있는 답변을 선호 → AI가 "모른다"고 말하기보다 자신있게 틀린 답을 말하는 경향이 생김. 이것이 '할루시네이션'의 원인 중 하나!</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════ 작동 원리 ═══════════════════ -->
+<div class="panel" id="tab-flow">
+  <div class="card purple">
+    <div class="sec-tag">5단계 작동 과정</div>
+    <div class="sec-title">AI는 이렇게 대답한다</div>
+    <div class="steps">
+      <div class="step-item">
+        <div class="step-num">1</div>
+        <div>
+          <div class="step-title">입력 받기</div>
+          <div class="step-desc">사용자의 질문이나 명령을 받습니다</div>
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-num">2</div>
+        <div>
+          <div class="step-title">토큰화 (Tokenization)</div>
+          <div class="step-desc">문장을 작은 단위(토큰)로 나눕니다. "안녕하세요" → [안녕, 하세, 요] 처럼 쪼갬</div>
+          <div class="step-next">→ 2회차에서 자세히 배울 내용</div>
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-num">3</div>
+        <div>
+          <div class="step-title">의미 공간으로 변환 (임베딩)</div>
+          <div class="step-desc">각 토큰을 숫자 벡터로 바꿉니다. "사랑" → [0.2, 0.8, 0.5, ...]</div>
+          <div class="step-next">→ 3회차에서 자세히 배울 내용</div>
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-num">4</div>
+        <div>
+          <div class="step-title">어텐션 적용 ⭐ 핵심!</div>
+          <div class="step-desc">중요한 부분에 집중하며 처리합니다. "그것"이 무엇을 가리키는지 파악</div>
+          <div class="step-next">→ 4회차에서 집중 학습 예정</div>
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-num">5</div>
+        <div>
+          <div class="step-title">확률적 생성</div>
+          <div class="step-desc">다음 단어를 확률로 선택하여 답변 생성. 이 과정이 초당 수백 번 반복됨</div>
+          <div class="step-next">→ 5회차에서 자세히 배울 내용</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card orange">
+    <div class="sec-tag">비유로 이해하기</div>
+    <div class="sec-title">AI는 어떤 학생인가?</div>
+    <ul class="point-list">
+      <li class="point-item">
+        <div class="pdot" style="background:#EFF6FF;color:#1D4ED8;">📚</div>
+        <div><strong style="display:block;">규칙 기반 = 교과서 암기</strong>문법 규칙 100개를 외운 학생. 규칙에 없으면 처리 못 함 ❌</div>
+      </li>
+      <li class="point-item">
+        <div class="pdot" style="background:var(--purple-bg);color:var(--purple);">🧠</div>
+        <div><strong style="display:block;">학습 기반 = 많이 듣고 말하기</strong>영어 대화를 1만 시간 들은 학생. 패턴을 자연스럽게 익혀 새 문장도 만들 수 있음 ✅</div>
+      </li>
+      <li class="point-item">
+        <div class="pdot" style="background:var(--green-bg);color:var(--green);">🎯</div>
+        <div><strong style="display:block;">LLM = 수십억 문장을 "들은" 학생</strong>규칙을 몰라도 자연스럽게 말합니다. 단, 자신감 있게 틀릴 수도 있어요</div>
+      </li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <div class="sec-tag">AI가 할 수 있는 것</div>
+    <div class="sec-title">이해 · 생성 · 추론</div>
+    <ul class="point-list">
+      <li class="point-item">
+        <div class="pdot" style="background:var(--purple-bg);color:var(--purple);">🧠</div>
+        <div><strong style="display:block;">이해 (Understanding)</strong>질문 의도 파악, 맥락 이해, 여러 문장의 관계 파악</div>
+      </li>
+      <li class="point-item">
+        <div class="pdot" style="background:#EFF6FF;color:#1D4ED8;">✍️</div>
+        <div><strong style="display:block;">생성 (Generation)</strong>새로운 텍스트 생성, 번역, 요약, 확장, 창작</div>
+      </li>
+      <li class="point-item">
+        <div class="pdot" style="background:var(--green-bg);color:var(--green);">🔗</div>
+        <div><strong style="display:block;">추론 (Reasoning)</strong>논리적 연결, 단계적 사고, 결론 도출</div>
+      </li>
+    </ul>
+    <div class="warn-box" style="margin-top:1rem;">
+      <div class="wb-icon">⚠️</div>
+      <div class="wb-text"><strong>주의: "이해"라는 단어를 조심스럽게 사용하세요</strong>AI가 정말 이해하는 것인지, 아니면 복잡한 패턴 매칭인지 — 이것은 6회차의 핵심 주제입니다!</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════ 퀴즈 ═══════════════════ -->
+<div class="panel" id="tab-quiz">
+  <div class="score-banner">
+    <div class="sc-label">현재 점수</div>
+    <div><span class="sc-num" id="scoreNum">0</span><span class="sc-of"> / 7</span></div>
+    <div class="sc-msg" id="scoreMsg">문제를 풀어보세요!</div>
+  </div>
+
+  <div class="quiz-card" id="q1">
+    <div class="q-num">문제 1 / 7</div>
+    <div class="q-text">AI가 전통 프로그램과 다른 가장 근본적인 차이는 무엇인가요?</div>
+    <div class="q-opts">
+      <button class="q-opt" onclick="answer('q1',this,false)">더 빠른 컴퓨터를 사용한다</button>
+      <button class="q-opt" onclick="answer('q1',this,true)">규칙을 외우지 않고 데이터에서 패턴을 학습한다</button>
+      <button class="q-opt" onclick="answer('q1',this,false)">인터넷에 연결되어 있다</button>
+      <button class="q-opt" onclick="answer('q1',this,false)">사람이 직접 만든 규칙이 더 많다</button>
+    </div>
+    <div class="q-fb" id="q1-fb"></div>
+  </div>
+
+  <div class="quiz-card" id="q2">
+    <div class="q-num">문제 2 / 7</div>
+    <div class="q-text">LLM에서 "Large"는 무엇을 의미하나요?</div>
+    <div class="q-opts">
+      <button class="q-opt" onclick="answer('q2',this,false)">화면이 크다는 뜻</button>
+      <button class="q-opt" onclick="answer('q2',this,false)">파일 용량이 크다는 뜻</button>
+      <button class="q-opt" onclick="answer('q2',this,true)">파라미터 수와 학습 데이터가 매우 많다는 뜻</button>
+      <button class="q-opt" onclick="answer('q2',this,false)">회사 규모가 크다는 뜻</button>
+    </div>
+    <div class="q-fb" id="q2-fb"></div>
+  </div>
+
+  <div class="quiz-card" id="q3">
+    <div class="q-num">문제 3 / 7</div>
+    <div class="q-text">ChatGPT에 같은 질문을 두 번 했을 때 답이 다른 이유는?</div>
+    <div class="q-opts">
+      <button class="q-opt" onclick="answer('q3',this,false)">ChatGPT가 처음 답을 잊어버렸기 때문</button>
+      <button class="q-opt" onclick="answer('q3',this,false)">서버가 다르게 연결됐기 때문</button>
+      <button class="q-opt" onclick="answer('q3',this,true)">AI가 확률적으로 다음 단어를 선택하기 때문</button>
+      <button class="q-opt" onclick="answer('q3',this,false)">버그가 있기 때문</button>
+    </div>
+    <div class="q-fb" id="q3-fb"></div>
+  </div>
+
+  <div class="quiz-card" id="q4">
+    <div class="q-num">문제 4 / 7</div>
+    <div class="q-text">2017년에 AI 역사를 바꾼 핵심 기술은 무엇인가요?</div>
+    <div class="q-opts">
+      <button class="q-opt" onclick="answer('q4',this,false)">딥러닝 (Deep Learning)</button>
+      <button class="q-opt" onclick="answer('q4',this,true)">트랜스포머 (Transformer) — 어텐션 메커니즘</button>
+      <button class="q-opt" onclick="answer('q4',this,false)">강화학습 (Reinforcement Learning)</button>
+      <button class="q-opt" onclick="answer('q4',this,false)">GPT-3 출시</button>
+    </div>
+    <div class="q-fb" id="q4-fb"></div>
+  </div>
+
+  <div class="quiz-card" id="q5">
+    <div class="q-num">문제 5 / 7</div>
+    <div class="q-text">ChatGPT가 5일 만에 사용자 100만 명을 돌파한 사건은 언제인가요?</div>
+    <div class="q-opts">
+      <button class="q-opt" onclick="answer('q5',this,false)">2020년 6월</button>
+      <button class="q-opt" onclick="answer('q5',this,false)">2021년 3월</button>
+      <button class="q-opt" onclick="answer('q5',this,true)">2022년 11월</button>
+      <button class="q-opt" onclick="answer('q5',this,false)">2023년 1월</button>
+    </div>
+    <div class="q-fb" id="q5-fb"></div>
+  </div>
+
+  <div class="quiz-card" id="q6">
+    <div class="q-num">문제 6 / 7</div>
+    <div class="q-text">AI 학습의 3단계 중 "RLHF"가 의미하는 것은?</div>
+    <div class="q-opts">
+      <button class="q-opt" onclick="answer('q6',this,false)">많은 양의 데이터로 사전 학습하는 단계</button>
+      <button class="q-opt" onclick="answer('q6',this,false)">특정 작업을 위해 추가 학습하는 단계</button>
+      <button class="q-opt" onclick="answer('q6',this,true)">인간의 평가를 통해 유용하고 안전한 응답을 학습하는 단계</button>
+      <button class="q-opt" onclick="answer('q6',this,false)">AI가 혼자 자가학습하는 단계</button>
+    </div>
+    <div class="q-fb" id="q6-fb"></div>
+  </div>
+
+  <div class="quiz-card" id="q7">
+    <div class="q-num">문제 7 / 7</div>
+    <div class="q-text">AI가 그럴듯하게 틀린 정보를 자신있게 말하는 현상을 무엇이라고 하나요?</div>
+    <div class="q-opts">
+      <button class="q-opt" onclick="answer('q7',this,false)">오버피팅 (Overfitting)</button>
+      <button class="q-opt" onclick="answer('q7',this,true)">할루시네이션 (Hallucination)</button>
+      <button class="q-opt" onclick="answer('q7',this,false)">바이어스 (Bias)</button>
+      <button class="q-opt" onclick="answer('q7',this,false)">토큰 오류</button>
+    </div>
+    <div class="q-fb" id="q7-fb"></div>
+  </div>
+
+  <button class="reset-btn" onclick="resetQuiz()">🔄 퀴즈 다시 풀기</button>
+</div>
+
+<!-- ═══════════════════ 도우미 ═══════════════════ -->
+<div class="panel" id="tab-helper">
+  <div class="card purple">
+    <div class="sec-tag">AI 활용 도우미</div>
+    <div class="sec-title">오늘 배운 내용으로 질문 만들기</div>
+    <p style="font-size:19px;color:var(--text-sub);line-height:1.7;margin-bottom:1.2rem;">
+      아래에서 골라주시면 ChatGPT / Claude에 보낼 메시지를 만들어드려요!
+    </p>
+
+    <div style="margin-bottom:1rem;">
+      <div style="font-size:18px;font-weight:700;color:var(--text-sub);margin-bottom:8px;padding-left:4px;">어떤 주제가 궁금하세요?</div>
+      <div class="chip-group" id="g-topic">
+        <button class="chip" onclick="selChip('topic','AI와 전통 프로그램 차이',this)">AI vs 전통 프로그램</button>
+        <button class="chip" onclick="selChip('topic','LLM 쉬운 설명',this)">LLM이 뭔가요?</button>
+        <button class="chip" onclick="selChip('topic','할루시네이션 예시',this)">할루시네이션 예시</button>
+        <button class="chip" onclick="selChip('topic','트랜스포머 쉬운 설명',this)">트랜스포머가 뭔가요?</button>
+        <button class="chip" onclick="selChip('topic','AI 활용 목회 현장',this)">목회에서 AI 활용</button>
+      </div>
+    </div>
+
+    <div style="margin-bottom:1rem;">
+      <div style="font-size:18px;font-weight:700;color:var(--text-sub);margin-bottom:8px;padding-left:4px;">설명 방식은?</div>
+      <div class="chip-group" id="g-style">
+        <button class="chip" onclick="selChip('style','비유를 들어서 아주 쉽게',this)">비유로 쉽게</button>
+        <button class="chip" onclick="selChip('style','구체적인 예시와 함께',this)">예시와 함께</button>
+        <button class="chip" onclick="selChip('style','70대도 이해할 수 있게 단계별로',this)">단계별로</button>
+      </div>
+    </div>
+
+    <button class="make-btn" onclick="makeMsg()">✨ 질문 메시지 만들기</button>
+    <div class="result-box" id="msg-result"><span style="color:var(--text-sub);">위에서 골라주시면 메시지가 만들어져요 😊</span></div>
+    <button class="copy-btn" id="msg-copy-btn" onclick="copyMsg()">📋 복사해서 ChatGPT / Claude에 붙여넣기</button>
+  </div>
+
+  <div class="card orange">
+    <div class="sec-tag">목회 현장 활용</div>
+    <div class="sec-title">AI를 이렇게 활용해보세요</div>
+    <ul class="point-list">
+      <li class="point-item"><div class="pdot" style="background:var(--purple-bg);color:var(--purple);">✍️</div><div><strong style="display:block;">설교 준비</strong>본문 연구 보조, 예화 아이디어, 개요 구성 지원</div></li>
+      <li class="point-item"><div class="pdot" style="background:#EFF6FF;color:#1D4ED8;">💬</div><div><strong style="display:block;">상담 지원</strong>상담 자료 준비, 성경적 관점 정리, 후속 관리 아이디어</div></li>
+      <li class="point-item"><div class="pdot" style="background:var(--green-bg);color:var(--green);">📖</div><div><strong style="display:block;">교육 자료</strong>성경공부 교재, 소그룹 토론 주제 만들기</div></li>
+      <li class="point-item"><div class="pdot" style="background:var(--orange-bg);color:var(--orange);">⚙️</div><div><strong style="display:block;">행정 업무</strong>공지사항 작성, 보고서 초안, 일정 관리</div></li>
+    </ul>
+    <div class="warn-box" style="margin-top:1rem;">
+      <div class="wb-icon">🙏</div>
+      <div class="wb-text"><strong>중요한 원칙</strong>AI는 보조 도구입니다. 성령의 인도와 목회자의 분별이 항상 우선입니다. AI의 답변은 반드시 검증하세요.</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="sec-tag">다음 6주 미리보기</div>
+    <div class="sec-title">앞으로 배울 내용</div>
+    <ul class="point-list">
+      <li class="point-item"><div class="pdot" style="background:var(--purple-bg);color:var(--purple);">2회</div>"사랑"이라는 단어가 어떻게 [0.2, 0.8, 0.5, ...] 같은 숫자 배열이 되는지 — 토큰화와 임베딩</li>
+      <li class="point-item"><div class="pdot" style="background:#EFF6FF;color:#1D4ED8;">3회</div>"왕"과 "여왕"의 관계가 "남자"와 "여자"의 관계와 같은 이유 — 의미 공간</li>
+      <li class="point-item"><div class="pdot" style="background:var(--green-bg);color:var(--green);">4회</div>AI가 "그것"이 무엇을 가리키는지 어떻게 아는지 — 어텐션 (⭐가장 중요!)</li>
+      <li class="point-item"><div class="pdot" style="background:var(--orange-bg);color:var(--orange);">5회</div>왜 AI가 "아마도", "보통"이라는 표현을 자주 쓰는지 — 확률의 지혜</li>
+      <li class="point-item"><div class="pdot" style="background:var(--red-bg);color:var(--red);">6회</div>AI가 정말 "생각"하는지, 아니면 복잡한 패턴 매칭인지 — 깊이의 비밀</li>
+      <li class="point-item"><div class="pdot" style="background:var(--border);color:var(--text-sub);">7회</div>배운 모든 것을 종합하여 실제 목회 현장 활용 연습</li>
+    </ul>
+  </div>
+</div>
+
+</div><!-- /panels -->
+
+<div class="bottom-bar">
+  <div class="b-tip">버튼을 눌러 <strong>AI 강사 설명</strong>을 들어보세요 · 몇 번이든 반복 OK! 🔁</div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+// ── 크롬 모달 ──
+(function() {
+  const overlay = document.getElementById('chromeOverlay');
+  const urlEl = document.getElementById('pageUrl');
+  if (urlEl) urlEl.textContent = location.href;
+
+  // localStorage 확인 (이미 확인했으면 숨김)
+  try {
+    if (localStorage.getItem('chrome_guide_ok') === '1') {
+      overlay.style.display = 'none';
+    }
+  } catch(e) {}
+})();
+
+function closeModal() {
+  const overlay = document.getElementById('chromeOverlay');
+  overlay.style.display = 'none';
+  try {
+    if (document.getElementById('dontShow').checked) {
+      localStorage.setItem('chrome_guide_ok', '1');
+    }
+  } catch(e) {}
+}
+
+function copyPageUrl() {
+  try {
+    navigator.clipboard.writeText(location.href).then(() => {
+      showToast('✅ 주소 복사 완료! 이제 크롬 앱을 여세요 🌐');
+      // 복사 버튼 시각적 피드백
+      const btn = document.querySelector('.cm-copy-url-btn');
+      if (btn) { btn.textContent = '✅ 복사됨'; btn.style.background = '#10B981'; }
+    });
+  } catch(e) {
+    showToast('주소: ' + location.href);
+  }
+}
+
+// ── 탭 전환 ──
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const t = btn.dataset.tab;
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('tab-' + t).classList.add('active');
+  });
+});
+
+// ── TTS (크롬 긴 문장 끊김 방지: 문장 단위 청크 큐) ──
+let ttsRate = 0.9;
+let ttsQueue = [];
+let ttsSpeaking = false;
+
+function setSpeed(rate, btn) {
+  ttsRate = rate;
+  document.querySelectorAll('.speed-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+// 텍스트를 문장 단위로 분할 (마침표/물음표/느낌표 뒤 기준)
+function splitSentences(text) {
+  // 줄바꿈도 분리 기준으로 사용
+  const raw = text.split(/\n+/).flatMap(line =>
+    line.match(/[^.!?。！？]*[.!?。！？]*/g) || [line]
+  );
+  return raw.map(s => s.trim()).filter(s => s.length > 0);
+}
+
+function speakQueue(sentences, label) {
+  ttsQueue = [...sentences];
+  ttsSpeaking = true;
+  const np = document.getElementById('nowPlaying');
+  const nt = document.getElementById('nowText');
+  if (label) { nt.textContent = label + ' 읽는 중...'; np.classList.add('show'); }
+  speakNext(label);
+}
+
+function speakNext(label) {
+  if (!window.speechSynthesis || ttsQueue.length === 0) {
+    ttsSpeaking = false;
+    document.getElementById('nowPlaying').classList.remove('show');
+    return;
+  }
+  const sentence = ttsQueue.shift();
+  if (!sentence.trim()) { speakNext(label); return; }
+
+  const utt = new SpeechSynthesisUtterance(sentence);
+  utt.lang = 'ko-KR';
+  utt.rate = ttsRate;
+  utt.pitch = 1.05;
+  utt.volume = 1;
+  const voices = window.speechSynthesis.getVoices();
+  const ko = voices.find(v => v.lang === 'ko-KR') || voices.find(v => v.lang.startsWith('ko'));
+  if (ko) utt.voice = ko;
+
+  utt.onend = () => {
+    if (ttsSpeaking) speakNext(label);
+  };
+  utt.onerror = () => {
+    if (ttsSpeaking) speakNext(label);
+  };
+  window.speechSynthesis.speak(utt);
+}
+
+function speak(text, label) {
+  if (!window.speechSynthesis) return;
+  stopSpeech();
+  const sentences = splitSentences(text);
+  speakQueue(sentences, label);
+}
+
+function speakEl(id, label) {
+  const el = document.getElementById(id);
+  if (el) speak(el.textContent, label);
+}
+
+function stopSpeech() {
+  ttsSpeaking = false;
+  ttsQueue = [];
+  if (window.speechSynthesis) window.speechSynthesis.cancel();
+  document.getElementById('nowPlaying').classList.remove('show');
+}
+window.speechSynthesis.onvoiceschanged = () => window.speechSynthesis.getVoices();
+
+// ── AI 강사 답변 ──
+const answers = {
+  diff: `AI와 전통 프로그램의 가장 근본적인 차이를 설명해 드릴게요.
+
+전통 프로그램은 '규칙 기반'이에요. 프로그래머가 모든 경우의 수를 미리 작성해 놓습니다. 예를 들어 "날씨가 비면 → 우산을 챙겨라"처럼요. 규칙에 없는 상황이 생기면 처리를 못 해요.
+
+반면에 AI는 '학습 기반'이에요. 수십억 개의 문장을 읽으면서 스스로 패턴을 익힙니다. 마치 영어를 오래 들으면 문법을 몰라도 자연스럽게 말하게 되는 것처럼요.
+
+그래서 전통 프로그램은 같은 입력에 항상 같은 출력을 냅니다. 하지만 AI는 확률적으로 다음 단어를 선택하기 때문에 매번 조금씩 다른 답을 낼 수 있어요.
+
+핵심: AI는 명령을 따르는 게 아니라 경험에서 배운 패턴으로 판단합니다.`,
+
+  llm: `LLM은 Large Language Model, 한국어로 '대규모 언어 모델'이에요.
+
+세 단어를 하나씩 풀어볼게요.
+
+Large(대규모)는 어마어마하게 크다는 뜻이에요. GPT-4는 약 1조 개의 파라미터를 가지고 있어요. 도서관으로 비유하면 수억 권의 책에 해당합니다.
+
+Language(언어)는 글자 그대로 언어를 다룬다는 뜻이에요. 텍스트를 이해하고 생성하는 것이 핵심이에요.
+
+Model(모델)은 수학적 구조라는 의미예요. 인간의 뇌처럼 신경망 구조로 만들어진 학습 가능한 시스템이에요.
+
+비유하자면, LLM은 수억 권의 책을 모두 읽고 그 내용을 내면화한 사서(司書)와 같아요. 책 내용을 외운 게 아니라 언어의 패턴 자체를 몸에 익힌 것이죠.`,
+
+  prob: `AI 출력이 매번 다른 이유를 설명해 드릴게요.
+
+전통 프로그램은 자동판매기 같아요. 같은 버튼을 누르면 항상 같은 음료가 나와요. 2+2는 언제나 4입니다.
+
+하지만 AI는 바리스타와 같아요. "커피 주세요"라고 하면 오늘의 기분과 재료에 따라 조금씩 다른 커피가 나와요. 하지만 맛있는 건 마찬가지예요.
+
+AI는 답변을 생성할 때 "다음에 올 가장 적합한 단어"를 확률로 선택합니다. "사랑을 표현하는 문장 써줘"라고 하면 여러 가능한 문장이 있고, 그 중 하나를 확률적으로 고르는 거예요.
+
+중요한 것은, 확률적이라는 것이 불확실하다는 뜻이 아니에요. 수십억 개의 문장에서 쌓인 경험의 통계입니다. 매번 달라도 모두 적절한 답일 수 있어요.`,
+
+  transformer: `2017년은 AI 역사에서 가장 중요한 해예요. 그 이유를 설명해 드릴게요.
+
+그 전까지 사용하던 RNN이라는 방식에는 큰 문제가 있었어요. 단어를 하나씩 순서대로 처리했는데, 이렇게 하면 앞부분의 내용을 잘 잊어버리고, 병렬 처리도 안 돼서 느렸어요.
+
+2017년에 구글 연구팀이 "Attention is All You Need"라는 논문으로 트랜스포머를 발표했어요. 이 방식의 혁신은 두 가지예요.
+
+첫째, 모든 단어를 동시에 처리합니다. 한 명이 책을 처음부터 끝까지 읽는 게 아니라 여러 명이 동시에 다른 페이지를 읽는 것처럼요.
+
+둘째, 어텐션 메커니즘이에요. "그것"이 무엇을 가리키는지, 이 단어가 저 단어와 어떤 관계인지 — 중요한 부분에 집중할 수 있게 됐어요.
+
+이 덕분에 GPT, Claude, Gemini 같은 오늘날의 AI가 탄생할 수 있었어요.`,
+
+  limit: `AI의 강점과 약점, 그리고 할루시네이션에 대해 설명해 드릴게요.
+
+AI의 강점은 정말 대단해요. 수천억 개 문장의 지식, 순식간에 답변 생성, 글쓰기부터 코딩까지 다양한 작업, 24시간 이용 가능, 피로하지 않음 — 이런 장점들이 있어요.
+
+하지만 약점도 분명히 있어요.
+
+가장 중요한 약점이 바로 할루시네이션이에요. 한국어로는 환각이라고도 해요. AI가 틀린 정보를 마치 맞는 것처럼 자신있게 말하는 현상이에요. 실존하지 않는 책 제목, 잘못된 통계, 없는 법조항을 태연하게 말하기도 해요.
+
+왜 이런 일이 생기냐면, AI는 "다음에 올 가장 자연스러운 단어"를 선택하는데, "모르겠다"고 말하는 것보다 그럴듯한 답을 만드는 것이 더 자연스럽게 훈련됐기 때문이에요.
+
+그래서 AI 답변은 반드시 검증하는 습관이 필요해요. 특히 중요한 정보나 사실은 꼭 확인하세요.`
+};
+
+function askAI(key, btn) {
+  const box = document.getElementById('resp-' + key);
+  const txt = document.getElementById('text-' + key);
+  if (box.classList.contains('show')) {
+    box.classList.remove('show');
+    stopSpeech();
+    return;
+  }
+  stopSpeech();
+  box.classList.add('show');
+  const reply = answers[key];
+  txt.textContent = reply;
+  const labels = { diff:'AI vs 전통 프로그램', llm:'LLM 설명', prob:'확률적 출력', transformer:'트랜스포머 혁명', limit:'AI의 한계' };
+  speak(reply, labels[key]);
+}
+
+// ── 퀴즈 ──
+const scores = {};
+const fbTexts = {
+  q1: { c:'정답이에요! AI는 규칙을 외우지 않고 데이터에서 패턴을 직접 학습합니다. 이것이 가장 근본적인 차이예요.', w:'아쉬워요! AI의 가장 큰 특징은 데이터에서 스스로 패턴을 학습한다는 점이에요. 다시 한 번 생각해보세요.' },
+  q2: { c:'정답이에요! Large는 파라미터 수와 학습 데이터가 어마어마하게 많다는 뜻이에요. GPT-4는 약 1조 개의 파라미터를 가지고 있어요.', w:'아쉬워요! Large는 파라미터 수와 학습 데이터의 규모가 매우 크다는 의미예요.' },
+  q3: { c:'정답이에요! AI는 확률적으로 다음 단어를 선택하기 때문에 같은 질문에도 매번 다른 답이 나올 수 있어요. 이것이 정상이에요!', w:'아쉬워요! AI는 확률에 따라 다음 단어를 선택해서 답변을 생성하기 때문에 매번 조금씩 달라요.' },
+  q4: { c:'정답이에요! 2017년 "Attention is All You Need" 논문으로 발표된 트랜스포머 구조가 오늘날 ChatGPT, Claude 등 모든 LLM의 기반이 되었어요.', w:'아쉬워요! 2017년에 발표된 트랜스포머(Transformer)와 어텐션 메커니즘이 AI 역사를 바꿨어요.' },
+  q5: { c:'정답이에요! 2022년 11월에 공개된 ChatGPT는 5일 만에 100만 명, 2개월 만에 1억 명을 돌파했어요. 역사상 가장 빠른 확산이었어요.', w:'아쉬워요! ChatGPT는 2022년 11월에 공개됐고, 전례 없는 속도로 퍼져나갔어요.' },
+  q6: { c:'정답이에요! RLHF는 인간 평가자가 AI 답변의 좋고 나쁨을 평가하면 AI가 그 피드백으로 유용하고 안전한 답변을 학습하는 과정이에요.', w:'아쉬워요! RLHF는 인간의 평가를 통해 AI가 더 유용하고 안전하게 응답하도록 학습하는 단계예요.' },
+  q7: { c:'정답이에요! 할루시네이션(Hallucination)은 AI가 틀린 정보를 마치 맞는 것처럼 자신있게 말하는 현상이에요. AI를 쓸 때 반드시 검증이 필요한 이유예요.', w:'아쉬워요! AI가 그럴듯하게 틀린 정보를 말하는 현상을 할루시네이션(환각)이라고 해요. 2회차에서 더 자세히 배울 거예요.' }
+};
+
+function answer(qid, btn, correct) {
+  if (scores[qid] !== undefined) return;
+  scores[qid] = correct;
+  btn.parentElement.querySelectorAll('.q-opt').forEach(o => o.disabled = true);
+  btn.classList.add(correct ? 'correct' : 'wrong');
+  if (!correct) {
+    btn.parentElement.querySelectorAll('.q-opt').forEach(o => {
+      if (o.getAttribute('onclick').includes('true')) o.classList.add('correct');
+    });
+  }
+  const fb = document.getElementById(qid + '-fb');
+  fb.textContent = fbTexts[qid][correct ? 'c' : 'w'];
+  fb.className = 'q-fb show ' + (correct ? 'ok' : 'ng');
+
+  const cnt = Object.values(scores).filter(v => v === true).length;
+  document.getElementById('scoreNum').textContent = cnt;
+  const total = Object.keys(scores).length;
+  const msgs = ['계속 풀어보세요!', '잘 하고 있어요!', '절반 넘었어요! 👍', '아주 잘 하고 있어요!', '거의 다 왔어요! 💪', '한 문제만 더!', '완벽 달성! 🎉', '만점! 정말 훌륭해요! 🏆'];
+  document.getElementById('scoreMsg').textContent = msgs[Math.min(cnt, msgs.length-1)];
+
+  if (correct) playChime(); else playBuzz();
+  setTimeout(() => speakFB(fbTexts[qid][correct ? 'c' : 'w']), correct ? 1200 : 800);
+}
+
+function resetQuiz() {
+  Object.keys(scores).forEach(k => delete scores[k]);
+  document.getElementById('scoreNum').textContent = '0';
+  document.getElementById('scoreMsg').textContent = '문제를 풀어보세요!';
+  ['q1','q2','q3','q4','q5','q6','q7'].forEach(qid => {
+    document.querySelectorAll('#' + qid + ' .q-opt').forEach(o => { o.disabled = false; o.className = 'q-opt'; });
+    const fb = document.getElementById(qid + '-fb'); fb.className = 'q-fb'; fb.textContent = '';
+  });
+  showToast('퀴즈가 초기화됐어요! 다시 풀어보세요 😊');
+}
+
+// ── 효과음 ──
+function playChime() {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    [[1047,0.0,1.2],[880,0.32,1.0],[784,0.64,1.4]].forEach(([freq,start,dur]) => {
+      [1, 2.756, 5.404].forEach((m, i) => {
+        const o = ctx.createOscillator(), g = ctx.createGain();
+        o.type = 'sine'; o.frequency.value = freq * m;
+        const v = [0.5,0.2,0.08][i], d = dur * [1,0.6,0.3][i];
+        g.gain.setValueAtTime(0, ctx.currentTime + start);
+        g.gain.linearRampToValueAtTime(v, ctx.currentTime + start + 0.01);
+        g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + start + d);
+        o.connect(g); g.connect(ctx.destination);
+        o.start(ctx.currentTime + start); o.stop(ctx.currentTime + start + d);
+      });
+    });
+  } catch(e) {}
+}
+function playBuzz() {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const o = ctx.createOscillator(), g = ctx.createGain();
+    o.type = 'sine'; o.frequency.value = 200;
+    g.gain.setValueAtTime(0.35, ctx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.55);
+    o.connect(g); g.connect(ctx.destination);
+    o.start(ctx.currentTime); o.stop(ctx.currentTime + 0.6);
+  } catch(e) {}
+}
+function speakFB(msg) {
+  if (!window.speechSynthesis) return;
+  stopSpeech();
+  const sentences = splitSentences(msg);
+  speakQueue(sentences, '퀴즈 피드백');
+}
+
+// ── 도우미 ──
+const chipSels = {};
+function selChip(group, value, btn) {
+  chipSels[group] = value;
+  document.getElementById('g-' + group).querySelectorAll('.chip').forEach(c => c.classList.remove('on'));
+  btn.classList.add('on');
+}
+let genMsg = '';
+const templates = {
+  'AI와 전통 프로그램 차이': 'AI와 전통 컴퓨터 프로그램의 가장 근본적인 차이가 무엇인지',
+  'LLM 쉬운 설명': 'LLM(대규모 언어 모델)이 무엇인지',
+  '할루시네이션 예시': 'AI의 할루시네이션이 무엇이고 실제 어떤 예시가 있는지',
+  '트랜스포머 쉬운 설명': '2017년에 발표된 트랜스포머 구조가 AI 역사에 왜 혁명적이었는지',
+  'AI 활용 목회 현장': '목사님이 설교 준비나 성경 공부 자료 만들 때 AI를 어떻게 활용하면 좋은지'
+};
+function makeMsg() {
+  const { topic, style } = chipSels;
+  if (!topic || !style) { showToast('주제와 방식을 모두 골라주세요! 😊'); return; }
+  genMsg = templates[topic] + ' ' + style + ' 설명해주세요.';
+  document.getElementById('msg-result').textContent = '📝 ' + genMsg;
+  document.getElementById('msg-copy-btn').style.display = 'block';
+  showToast('메시지가 만들어졌어요! 복사해서 붙여넣으세요 ✨');
+}
+function copyMsg() {
+  if (!genMsg) return;
+  navigator.clipboard.writeText(genMsg).then(() => showToast('복사됐어요! ChatGPT / Claude에 붙여넣기 해보세요 😊'));
+}
+
+// ── 토스트 ──
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2800);
+}
+</script>
+</body>
+</html>
