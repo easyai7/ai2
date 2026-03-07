@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>앱 설치 방법 — LLM 리터러시</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  font-family: 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+  background: linear-gradient(160deg, #e0f4ff 0%, #f0f8ff 100%);
+  min-height: 100vh;
+  padding: 1.5rem 1rem 4rem;
+  color: #1a1a2e;
+}
+
+h1 {
+  text-align: center;
+  font-size: 26px;
+  font-weight: 900;
+  color: #1565C0;
+  margin-bottom: 4px;
+  line-height: 1.3;
+}
+.subtitle {
+  text-align: center;
+  font-size: 17px;
+  color: #555;
+  margin-bottom: 2rem;
+}
+
+/* 스텝 카드 */
+.step-card {
+  background: #fff;
+  border-radius: 20px;
+  padding: 1.4rem 1.2rem;
+  margin-bottom: 1.2rem;
+  box-shadow: 0 4px 16px rgba(21,101,192,0.10);
+  border: 1.5px solid #d0e8ff;
+}
+.step-header {
+  display: flex; align-items: center; gap: 14px;
+  margin-bottom: 1rem;
+}
+.step-num {
+  width: 42px; height: 42px; border-radius: 50%;
+  background: linear-gradient(135deg, #1565C0, #1976D2);
+  color: #fff; font-size: 20px; font-weight: 900;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.step-title { font-size: 20px; font-weight: 800; color: #1565C0; line-height: 1.3; }
+.step-desc { font-size: 17px; color: #444; line-height: 1.75; margin-bottom: 1rem; }
+
+/* 복사 버튼 */
+.copy-btn {
+  display: block; width: 100%; padding: 14px;
+  background: linear-gradient(135deg, #1565C0, #1976D2);
+  color: #fff; border: none; border-radius: 14px;
+  font-family: inherit; font-size: 19px; font-weight: 700;
+  cursor: pointer; margin-top: 8px;
+}
+.url-box {
+  background: #e8f4ff; border: 2px dashed #90CAF9;
+  border-radius: 12px; padding: 0.8rem 1rem;
+  font-size: 15px; color: #1565C0; font-weight: 700;
+  word-break: break-all; margin-bottom: 8px;
+  line-height: 1.6;
+}
+
+/* ── 애니메이션 폰 모형 ── */
+.phone-wrap {
+  display: flex; justify-content: center;
+  margin: 0.5rem 0 0.2rem;
+}
+.phone {
+  width: 200px;
+  background: #1a1a2e;
+  border-radius: 28px;
+  padding: 10px 8px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+  position: relative;
+}
+.phone-screen {
+  background: #fff;
+  border-radius: 20px;
+  overflow: hidden;
+  min-height: 320px;
+  position: relative;
+}
+/* 주소창 */
+.phone-bar {
+  background: #f1f3f4;
+  padding: 6px 10px;
+  font-size: 11px;
+  color: #555;
+  border-bottom: 1px solid #ddd;
+  display: flex; align-items: center; gap: 6px;
+}
+.phone-dot { width: 8px; height: 8px; background: #1565C0; border-radius: 50%; }
+.phone-url { font-size: 10px; color: #1565C0; font-weight: 600; }
+
+/* 앱 화면 미니어처 */
+.phone-content {
+  padding: 8px;
+}
+.mini-hero {
+  background: linear-gradient(135deg, #1e0050, #7c3aed);
+  border-radius: 10px;
+  padding: 8px;
+  color: #fff;
+  font-size: 9px;
+  font-weight: 700;
+  margin-bottom: 6px;
+  text-align: center;
+}
+.mini-tab-row {
+  display: flex; gap: 3px; margin-bottom: 6px;
+}
+.mini-tab {
+  flex: 1; background: #f3eeff; border-radius: 5px;
+  padding: 3px; font-size: 7px; text-align: center; color: #7c3aed; font-weight: 600;
+}
+.mini-card {
+  background: #f9f9f9; border-radius: 8px; padding: 6px;
+  font-size: 8px; color: #444; line-height: 1.5; margin-bottom: 4px;
+}
+
+/* 점 세 개 버튼 */
+.three-dots {
+  position: absolute;
+  top: 8px; right: 8px;
+  font-size: 16px; color: #333;
+  font-weight: 900; letter-spacing: -1px;
+  line-height: 1;
+}
+
+/* 드롭다운 메뉴 */
+.dropdown {
+  position: absolute;
+  top: 28px; right: 4px;
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.18);
+  width: 120px;
+  overflow: hidden;
+  opacity: 0;
+  transform: translateY(-6px);
+  animation: dropIn 0.4s ease 1s forwards;
+}
+.dropdown-item {
+  padding: 7px 10px;
+  font-size: 9px;
+  color: #333;
+  border-bottom: 1px solid #f0f0f0;
+}
+.dropdown-item.highlight {
+  background: #e8f4ff;
+  color: #1565C0;
+  font-weight: 700;
+}
+@keyframes dropIn {
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* 손가락 커서 애니메이션 */
+.cursor {
+  position: absolute;
+  font-size: 22px;
+  pointer-events: none;
+  z-index: 10;
+  filter: drop-shadow(1px 1px 2px rgba(0,0,0,0.3));
+}
+
+/* 스텝 2 커서: 점 세 개 클릭 */
+.cursor-dots {
+  top: 2px; right: 2px;
+  animation: clickDots 2s ease infinite;
+}
+@keyframes clickDots {
+  0%   { top: -10px; right: -10px; opacity: 0; }
+  30%  { top: 2px; right: 2px; opacity: 1; }
+  50%  { transform: scale(0.85); }
+  60%  { transform: scale(1); }
+  100% { top: 2px; right: 2px; opacity: 1; }
+}
+
+/* 스텝 3 커서: 홈 화면에 추가 클릭 */
+.cursor-menu {
+  top: 60px; right: 20px;
+  opacity: 0;
+  animation: clickMenu 2.5s ease infinite;
+}
+@keyframes clickMenu {
+  0%,40% { opacity: 0; top: 20px; right: 20px; }
+  60%    { opacity: 1; top: 60px; right: 20px; }
+  75%    { transform: scale(0.85); opacity: 1; }
+  85%    { transform: scale(1); opacity: 1; }
+  100%   { opacity: 0; top: 60px; right: 20px; }
+}
+
+/* 홈 화면 아이콘 등장 애니메이션 */
+.home-screen {
+  display: flex; flex-direction: column; align-items: center;
+  justify-content: center; height: 100%;
+  padding: 20px 10px;
+}
+.home-grid {
+  display: grid; grid-template-columns: repeat(4, 1fr);
+  gap: 8px; width: 100%;
+}
+.home-icon {
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+}
+.home-icon-img {
+  width: 36px; height: 36px; border-radius: 8px;
+  background: #ddd;
+}
+.home-icon-img.llm {
+  background: linear-gradient(135deg, #87CEEB, #5ba8d4);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 10px; font-weight: 900; color: #1565C0;
+  opacity: 0;
+  animation: popIn 0.5s cubic-bezier(0.34,1.56,0.64,1) 2.2s forwards;
+}
+.home-icon-label {
+  font-size: 7px; color: #333; text-align: center;
+  opacity: 0;
+  animation: popIn 0.4s ease 2.5s forwards;
+}
+@keyframes popIn {
+  from { opacity: 0; transform: scale(0.3); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+/* 완료 배지 */
+.done-badge {
+  background: linear-gradient(135deg, #1565C0, #1976D2);
+  color: #fff; border-radius: 16px;
+  padding: 1rem 1.2rem;
+  text-align: center;
+  font-size: 18px; font-weight: 700;
+  margin-top: 0.5rem;
+  line-height: 1.6;
+}
+
+/* ── STEP 2 상세 ── */
+.substep {
+  margin-bottom: 1.4rem;
+  padding-bottom: 1.4rem;
+  border-bottom: 1.5px dashed #d0e8ff;
+}
+.substep:last-child { border-bottom: none; margin-bottom: 0; }
+.substep-label {
+  font-size: 18px; font-weight: 700; color: #1565C0;
+  margin-bottom: 0.7rem; line-height: 1.4;
+}
+.substep-tip {
+  font-size: 16px; color: #555; line-height: 1.6;
+  margin-top: 0.6rem;
+  background: #f0f8ff; border-radius: 10px; padding: 8px 12px;
+}
+
+/* 크롬 상단 바 */
+.chrome-top {
+  display: flex; align-items: center; gap: 4px;
+  background: #f1f3f4; padding: 5px 6px;
+  border-bottom: 1px solid #ddd;
+}
+.chrome-back { font-size: 16px; color: #555; padding: 0 3px; font-weight: 700; }
+.chrome-addr-box {
+  flex: 1; background: #fff; border-radius: 20px;
+  padding: 4px 8px; border: 1.5px solid #ddd;
+  display: flex; align-items: center;
+  transition: border-color 0.3s;
+}
+.chrome-addr-box.pressing {
+  border-color: #1565C0;
+  box-shadow: 0 0 0 3px rgba(21,101,192,0.15);
+  animation: pulse 1s ease infinite;
+}
+.chrome-addr-box.filled { border-color: #1565C0; background: #e8f4ff; }
+.chrome-addr-text { font-size: 10px; color: #999; }
+.chrome-menu { font-size: 14px; color: #555; padding: 0 3px; font-weight: 900; }
+.chrome-body { padding: 6px 8px; }
+
+/* 붙여넣기 팝업 */
+.paste-popup {
+  position: absolute; top: 28px; left: 30px;
+  background: #333; border-radius: 8px;
+  overflow: hidden; z-index: 5;
+  animation: fadeInPop 0.3s ease 1s both;
+}
+.paste-popup2 {
+  position: absolute; top: 28px; left: 30px;
+  background: #333; border-radius: 8px;
+  overflow: hidden; z-index: 5;
+}
+.paste-item {
+  padding: 6px 12px; font-size: 10px; color: #fff;
+  border-bottom: 1px solid #555;
+}
+.paste-item:last-child { border-bottom: none; }
+.highlight-paste { background: #1565C0; font-weight: 700; }
+
+/* 가상 키보드 */
+.keyboard {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  background: #d1d5db; padding: 4px 2px;
+}
+.kb-row {
+  display: flex; gap: 2px; margin-bottom: 2px; justify-content: center;
+}
+.kb-key {
+  background: #fff; border-radius: 4px; padding: 4px 3px;
+  font-size: 8px; font-weight: 600; color: #333;
+  min-width: 18px; text-align: center;
+  box-shadow: 0 1px 0 #999;
+}
+.kb-wide { min-width: 26px; }
+.kb-wide2 { min-width: 30px; font-size: 7px; }
+.kb-wide3 { flex: 1; }
+.kb-go {
+  background: #1565C0; color: #fff; border-radius: 4px;
+  padding: 4px 6px; font-size: 9px; font-weight: 900;
+  min-width: 32px; text-align: center;
+  box-shadow: 0 1px 0 #0d47a1;
+  animation: glowGo 1.5s ease infinite;
+}
+
+/* 키프레임 */
+@keyframes pointAddr {
+  0%   { opacity: 0; top: -10px; left: 40px; }
+  20%  { opacity: 1; top: 6px;  left: 55px; }
+  60%  { opacity: 1; top: 6px;  left: 55px; }
+  80%  { opacity: 0; }
+  100% { opacity: 0; }
+}
+@keyframes longPress {
+  0%   { opacity: 0; transform: scale(1); }
+  20%  { opacity: 1; transform: scale(1); }
+  40%  { transform: scale(0.8); }
+  60%  { transform: scale(0.8); }
+  80%  { transform: scale(1); opacity: 1; }
+  100% { opacity: 0; }
+}
+@keyframes tapPaste {
+  0%,30% { opacity: 0; top: 6px; left: 55px; }
+  50%    { opacity: 1; top: 36px; left: 30px; }
+  65%    { transform: scale(0.8); }
+  75%    { transform: scale(1); }
+  100%   { opacity: 0; }
+}
+@keyframes tapGo {
+  0%,30% { opacity: 0; }
+  50%    { opacity: 1; transform: scale(1); }
+  65%    { transform: scale(0.8); }
+  75%    { transform: scale(1); }
+  100%   { opacity: 0; }
+}
+@keyframes pulse {
+  0%,100% { box-shadow: 0 0 0 2px rgba(21,101,192,0.2); }
+  50%     { box-shadow: 0 0 0 5px rgba(21,101,192,0.35); }
+}
+@keyframes fadeInPop {
+  from { opacity: 0; transform: scale(0.8); }
+  to   { opacity: 1; transform: scale(1); }
+}
+@keyframes glowGo {
+  0%,100% { box-shadow: 0 1px 0 #0d47a1; }
+  50%     { box-shadow: 0 0 8px rgba(21,101,192,0.7); }
+}
+
+/* 링크 버튼 */
+.go-btn {
+  display: block; width: 100%; padding: 16px;
+  background: linear-gradient(135deg, #1565C0, #1976D2);
+  color: #fff; border: none; border-radius: 16px;
+  font-family: inherit; font-size: 21px; font-weight: 900;
+  cursor: pointer; text-decoration: none; text-align: center;
+  margin-top: 1.5rem;
+  box-shadow: 0 4px 16px rgba(21,101,192,0.3);
+}
+</style>
+</head>
+<body>
+
+<h1>📱 홈 화면에 앱 추가하기</h1>
+<div class="subtitle">한 번만 하면 앱처럼 바로 열 수 있어요!</div>
+
+<!-- 크롬 필수 안내 -->
+<div style="background:#fff; border-radius:20px; padding:1.4rem 1.2rem; margin-bottom:1.2rem; box-shadow:0 4px 16px rgba(21,101,192,0.10); border:2px solid #1565C0; text-align:center;">
+  <div style="font-size:24px; font-weight:900; color:#1a1a2e; margin-bottom:0.5rem; line-height:1.3;">🌐 크롬(Chrome)으로<br>열어주세요!</div>
+  <div style="font-size:17px; color:#444; line-height:1.7; margin-bottom:1.2rem;">이 복습 앱은 <strong>크롬 브라우저</strong>에서만<br>음성 읽기(TTS)가 제대로 작동합니다</div>
+  <div style="display:flex; justify-content:center; gap:1.5rem; margin-bottom:0.5rem;">
+    <div style="display:flex; flex-direction:column; align-items:center; gap:4px;">
+      <div style="font-size:44px;">🟢</div>
+      <div style="font-size:15px; font-weight:900; color:#065F46;">Chrome ✅</div>
+    </div>
+    <div style="display:flex; flex-direction:column; align-items:center; gap:4px; opacity:0.4;">
+      <div style="font-size:44px; filter:grayscale(1);">🦊</div>
+      <div style="font-size:15px; font-weight:700; color:#9CA3AF; text-decoration:line-through;">Firefox</div>
+    </div>
+    <div style="display:flex; flex-direction:column; align-items:center; gap:4px; opacity:0.4;">
+      <div style="font-size:44px; filter:grayscale(1);">🧭</div>
+      <div style="font-size:15px; font-weight:700; color:#9CA3AF; text-decoration:line-through;">Safari</div>
+    </div>
+    <div style="display:flex; flex-direction:column; align-items:center; gap:4px; opacity:0.4;">
+      <div style="font-size:44px; filter:grayscale(1);">🌀</div>
+      <div style="font-size:15px; font-weight:700; color:#9CA3AF; text-decoration:line-through;">Edge</div>
+    </div>
+  </div>
+</div>
+
+<!-- STEP 1: 주소 복사 -->
+<div class="step-card">
+  <div class="step-header">
+    <div class="step-num">1</div>
+    <div class="step-title">📋 주소를 복사하세요</div>
+  </div>
+  <div class="step-desc">아래 복사 버튼을 누르면 주소가 복사됩니다</div>
+  <div class="url-box">https://easyai7.github.io/ai2/</div>
+  <button class="copy-btn" onclick="copyUrl(this)">📋 주소 복사하기</button>
+</div>
+
+<!-- STEP 2: 크롬 열고 주소 입력 -->
+<div class="step-card">
+  <div class="step-header">
+    <div class="step-num">2</div>
+    <div class="step-title">🌐 크롬을 열고 주소 붙여넣기</div>
+  </div>
+
+  <!-- 2-1: 주소창 위치 -->
+  <div class="substep">
+    <div class="substep-label">① 크롬을 열면 위쪽에 주소창이 있어요</div>
+    <div class="phone-wrap">
+      <div class="phone">
+        <div class="phone-screen" style="min-height:160px;">
+          <!-- 크롬 상단 바 -->
+          <div class="chrome-top">
+            <div class="chrome-back">‹</div>
+            <div class="chrome-addr-box" id="addrBox">
+              <span class="chrome-addr-text">검색 또는 URL 입력</span>
+            </div>
+            <div class="chrome-menu">⋮</div>
+          </div>
+          <div class="chrome-body">
+            <div style="font-size:9px;color:#aaa;text-align:center;padding-top:20px;">새 탭</div>
+          </div>
+          <!-- 손가락: 주소창 가리키기 -->
+          <span class="cursor" style="
+            top:6px; left:55px;
+            animation: pointAddr 3s ease infinite;
+          ">👆</span>
+        </div>
+      </div>
+    </div>
+    <div class="substep-tip">👆 화면 위쪽 가운데 긴 흰 칸이 주소창입니다</div>
+  </div>
+
+  <!-- 2-2: 길게 누르기 -->
+  <div class="substep">
+    <div class="substep-label">② 주소창을 <strong>길게 누르세요</strong> (1~2초)</div>
+    <div class="phone-wrap">
+      <div class="phone">
+        <div class="phone-screen" style="min-height:180px;">
+          <div class="chrome-top">
+            <div class="chrome-back">‹</div>
+            <div class="chrome-addr-box pressing">
+              <span class="chrome-addr-text">검색 또는 URL 입력</span>
+            </div>
+            <div class="chrome-menu">⋮</div>
+          </div>
+          <!-- 붙여넣기 팝업 -->
+          <div class="paste-popup">
+            <div class="paste-item highlight-paste">📋 붙여넣기</div>
+            <div class="paste-item">전체 선택</div>
+          </div>
+          <div class="chrome-body" style="padding-top:10px;">
+            <div style="font-size:9px;color:#aaa;text-align:center;">새 탭</div>
+          </div>
+          <!-- 손가락: 길게 누르기 -->
+          <span class="cursor" style="
+            top:6px; left:55px;
+            animation: longPress 3s ease infinite;
+          ">👆</span>
+        </div>
+      </div>
+    </div>
+    <div class="substep-tip">꾹 누르면 위처럼 <strong>"붙여넣기"</strong> 메뉴가 나타납니다</div>
+  </div>
+
+  <!-- 2-3: 붙여넣기 터치 -->
+  <div class="substep">
+    <div class="substep-label">③ <strong>"붙여넣기"</strong>를 터치하세요</div>
+    <div class="phone-wrap">
+      <div class="phone">
+        <div class="phone-screen" style="min-height:180px;">
+          <div class="chrome-top">
+            <div class="chrome-back">‹</div>
+            <div class="chrome-addr-box filled">
+              <span class="chrome-addr-text" style="color:#1565C0;font-size:9px;">easyai7.github.io/ai2/</span>
+            </div>
+            <div class="chrome-menu">⋮</div>
+          </div>
+          <div class="paste-popup2">
+            <div class="paste-item highlight-paste">📋 붙여넣기</div>
+            <div class="paste-item">전체 선택</div>
+          </div>
+          <div class="chrome-body" style="padding-top:10px;">
+            <div style="font-size:9px;color:#aaa;text-align:center;">새 탭</div>
+          </div>
+          <!-- 손가락: 붙여넣기 터치 -->
+          <span class="cursor" style="
+            top: 36px; left: 30px;
+            animation: tapPaste 2.5s ease infinite;
+          ">👆</span>
+        </div>
+      </div>
+    </div>
+    <div class="substep-tip">터치하면 주소창에 주소가 자동으로 입력됩니다</div>
+  </div>
+
+  <!-- 2-4: 이동 버튼 -->
+  <div class="substep">
+    <div class="substep-label">④ 키보드의 <strong>"이동"</strong> 버튼을 누르세요</div>
+    <div class="phone-wrap">
+      <div class="phone">
+        <div class="phone-screen" style="min-height:220px;">
+          <div class="chrome-top">
+            <div class="chrome-back">‹</div>
+            <div class="chrome-addr-box filled">
+              <span class="chrome-addr-text" style="color:#1565C0;font-size:9px;">easyai7.github.io/ai2/</span>
+            </div>
+            <div class="chrome-menu">⋮</div>
+          </div>
+          <!-- 가상 키보드 -->
+          <div class="keyboard">
+            <div class="kb-row">
+              <div class="kb-key">ㅂ</div><div class="kb-key">ㅈ</div><div class="kb-key">ㄷ</div>
+              <div class="kb-key">ㄱ</div><div class="kb-key">ㅅ</div><div class="kb-key">ㅛ</div>
+              <div class="kb-key">ㅕ</div><div class="kb-key">ㅑ</div><div class="kb-key">ㅐ</div>
+            </div>
+            <div class="kb-row">
+              <div class="kb-key">ㅁ</div><div class="kb-key">ㄴ</div><div class="kb-key">ㅇ</div>
+              <div class="kb-key">ㄹ</div><div class="kb-key">ㅎ</div><div class="kb-key">ㅗ</div>
+              <div class="kb-key">ㅓ</div><div class="kb-key">ㅏ</div><div class="kb-key">ㅣ</div>
+            </div>
+            <div class="kb-row">
+              <div class="kb-key kb-wide">⇧</div>
+              <div class="kb-key">ㅋ</div><div class="kb-key">ㅌ</div><div class="kb-key">ㅊ</div>
+              <div class="kb-key">ㅍ</div><div class="kb-key">ㅠ</div><div class="kb-key">ㅜ</div>
+              <div class="kb-key kb-wide">⌫</div>
+            </div>
+            <div class="kb-row">
+              <div class="kb-key kb-wide2">!#1</div>
+              <div class="kb-key kb-wide3">스페이스</div>
+              <div class="kb-key kb-go" id="goBtn">이동</div>
+            </div>
+          </div>
+          <!-- 손가락: 이동 버튼 -->
+          <span class="cursor" style="
+            bottom: 12px; right: 8px; top: auto;
+            animation: tapGo 2s ease infinite;
+          ">👆</span>
+        </div>
+      </div>
+    </div>
+    <div class="substep-tip">키보드 오른쪽 아래 <strong style="color:#1565C0;">"이동"</strong> 버튼을 누르면 페이지가 열립니다!</div>
+  </div>
+
+</div>
+
+<!-- STEP 3: 점 세 개 → 홈 화면에 추가 -->
+<div class="step-card">
+  <div class="step-header">
+    <div class="step-num">3</div>
+    <div class="step-title">⋮ 오른쪽 위 점 세 개 버튼</div>
+  </div>
+  <div class="step-desc">크롬 오른쪽 상단의 <strong>⋮ 버튼</strong>을 누르면 메뉴가 열립니다. <strong>"홈 화면에 추가"</strong>를 선택하세요.</div>
+
+  <!-- 폰 애니메이션: 드롭다운 -->
+  <div class="phone-wrap">
+    <div class="phone">
+      <div class="phone-screen" style="min-height:200px;">
+        <div class="phone-bar">
+          <div class="phone-dot"></div>
+          <span class="phone-url">easyai7.github.io/ai2/</span>
+        </div>
+        <div class="phone-content" style="position:relative;">
+          <div class="mini-hero">AI는 어떻게 생각하는가?</div>
+          <div class="three-dots">⋮</div>
+
+          <!-- 드롭다운 메뉴 -->
+          <div class="dropdown">
+            <div class="dropdown-item">새 탭</div>
+            <div class="dropdown-item">북마크 추가</div>
+            <div class="dropdown-item highlight">🏠 홈 화면에 추가</div>
+            <div class="dropdown-item">공유</div>
+            <div class="dropdown-item">설정</div>
+          </div>
+
+          <!-- 손가락: 점 세 개 클릭 -->
+          <span class="cursor cursor-dots">👆</span>
+          <!-- 손가락: 홈 화면에 추가 클릭 -->
+          <span class="cursor cursor-menu">👆</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- STEP 4: 홈 화면 아이콘 확인 -->
+<div class="step-card">
+  <div class="step-header">
+    <div class="step-num">4</div>
+    <div class="step-title">✅ 홈 화면에 아이콘 등장!</div>
+  </div>
+  <div class="step-desc">추가하면 홈 화면에 아이콘이 생깁니다. 다음부터는 이 아이콘을 누르면 바로 열립니다!</div>
+
+  <!-- 폰 애니메이션: 홈 화면 아이콘 -->
+  <div class="phone-wrap">
+    <div class="phone">
+      <div class="phone-screen" style="min-height:180px; background:#f0f0f0;">
+        <div class="home-screen">
+          <div class="home-grid">
+            <div class="home-icon"><div class="home-icon-img" style="background:#ffcc00;"></div><div class="home-icon-label" style="opacity:1;">카카오</div></div>
+            <div class="home-icon"><div class="home-icon-img" style="background:#03c75a;"></div><div class="home-icon-label" style="opacity:1;">네이버</div></div>
+            <div class="home-icon"><div class="home-icon-img" style="background:#4285f4;"></div><div class="home-icon-label" style="opacity:1;">크롬</div></div>
+            <div class="home-icon">
+              <div class="home-icon-img llm">LLM</div>
+              <div class="home-icon-label">LLM복습</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="done-badge">
+    🎉 완료! 이제 홈 화면에서<br>바로 열 수 있습니다
+  </div>
+</div>
+
+<!-- 복습 앱으로 이동 버튼 -->
+<a class="go-btn" href="https://easyai7.github.io/ai2/">📖 복습 앱 바로 열기</a>
+
+<script>
+function copyUrl(btn) {
+  navigator.clipboard.writeText('https://easyai7.github.io/ai2/')
+    .then(() => {
+      btn.textContent = '✅ 복사됐어요! 크롬을 여세요';
+      btn.style.background = '#10B981';
+    });
+}
+</script>
+</body>
+</html>

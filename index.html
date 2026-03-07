@@ -1,10 +1,18 @@
-
 <!DOCTYPE html>
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=2.0">
 <title>AI는 어떻게 생각하는가? — 1회차 복습</title>
+<!-- PWA / 홈 화면 추가 -->
+<link rel="apple-touch-icon" href="icon-512.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="LLM복습">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#7C3AED">
 <style>
 :root {
   --bg: #f5f7fc;
@@ -540,68 +548,6 @@ body {
 </head>
 <body>
 
-<!-- ── 크롬 안내 모달 (처음 방문 시만) ── -->
-<div class="chrome-overlay" id="chromeOverlay">
-  <div class="chrome-modal">
-    <div class="cm-title">🌐 크롬(Chrome)으로<br>열어주세요!</div>
-    <div class="cm-sub">이 복습 앱은 <strong>크롬 브라우저</strong>에서만<br>음성 읽기(TTS)가 제대로 작동합니다</div>
-
-    <!-- 브라우저 비교 -->
-    <div class="cm-browsers">
-      <div class="cm-browser ok">
-        <div class="cm-browser-icon">🟢</div>
-        <div class="cm-browser-name">Chrome ✅</div>
-      </div>
-      <div class="cm-browser no">
-        <div class="cm-browser-icon">🦊</div>
-        <div class="cm-browser-name">Firefox</div>
-      </div>
-      <div class="cm-browser no">
-        <div class="cm-browser-icon">🧭</div>
-        <div class="cm-browser-name">Safari</div>
-      </div>
-      <div class="cm-browser no">
-        <div class="cm-browser-icon">🌀</div>
-        <div class="cm-browser-name">Edge</div>
-      </div>
-    </div>
-
-    <!-- 단계별 안내 -->
-    <div class="cm-steps">
-      <div class="cm-step">
-        <div class="cm-step-num">1</div>
-        <div class="cm-step-body">
-          <div class="cm-step-label">📋 먼저 이 주소를 복사하세요</div>
-          <div class="cm-url-box">
-            <span class="cm-url-text" id="pageUrl">이 페이지의 주소</span>
-            <button class="cm-copy-url-btn" onclick="copyPageUrl()">📋 복사</button>
-          </div>
-          <div class="cm-step-detail" style="margin-top:6px;">복사 버튼을 누르면 주소가 클립보드에 저장돼요</div>
-        </div>
-      </div>
-      <div class="cm-step">
-        <div class="cm-step-num">2</div>
-        <div class="cm-step-body">
-          <div class="cm-step-label">🌐 크롬(Chrome) 앱을 여세요</div>
-          <div class="cm-step-detail">스마트폰에서 크롬 앱을 실행하세요. 주소창을 길게 누르면 "붙여넣기"가 나타나요</div>
-        </div>
-      </div>
-      <div class="cm-step">
-        <div class="cm-step-num">3</div>
-        <div class="cm-step-body">
-          <div class="cm-step-label">✅ 주소창에 붙여넣고 이동</div>
-          <div class="cm-step-detail">붙여넣기 → Enter! 그러면 크롬에서 이 앱이 열리고 음성이 잘 들립니다 🔊</div>
-        </div>
-      </div>
-    </div>
-
-    <button class="cm-ok-btn" onclick="closeModal()">✅ 크롬에서 열었어요! 시작하기</button>
-    <label class="cm-check-row">
-      <input type="checkbox" id="dontShow"> 다음부터 이 안내 보지 않기
-    </label>
-  </div>
-</div>
-
 <!-- 헤더 -->
 <div class="hero">
   <div class="hero-badge">📚 제1회 복습 앱</div>
@@ -1049,43 +995,6 @@ body {
 <div class="toast" id="toast"></div>
 
 <script>
-// ── 크롬 모달 ──
-(function() {
-  const overlay = document.getElementById('chromeOverlay');
-  const urlEl = document.getElementById('pageUrl');
-  if (urlEl) urlEl.textContent = location.href;
-
-  // localStorage 확인 (이미 확인했으면 숨김)
-  try {
-    if (localStorage.getItem('chrome_guide_ok') === '1') {
-      overlay.style.display = 'none';
-    }
-  } catch(e) {}
-})();
-
-function closeModal() {
-  const overlay = document.getElementById('chromeOverlay');
-  overlay.style.display = 'none';
-  try {
-    if (document.getElementById('dontShow').checked) {
-      localStorage.setItem('chrome_guide_ok', '1');
-    }
-  } catch(e) {}
-}
-
-function copyPageUrl() {
-  try {
-    navigator.clipboard.writeText(location.href).then(() => {
-      showToast('✅ 주소 복사 완료! 이제 크롬 앱을 여세요 🌐');
-      // 복사 버튼 시각적 피드백
-      const btn = document.querySelector('.cm-copy-url-btn');
-      if (btn) { btn.textContent = '✅ 복사됨'; btn.style.background = '#10B981'; }
-    });
-  } catch(e) {
-    showToast('주소: ' + location.href);
-  }
-}
-
 // ── 탭 전환 ──
 document.querySelectorAll('.tab-btn').forEach(btn => {
   btn.addEventListener('click', () => {
