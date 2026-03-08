@@ -19,11 +19,20 @@ let _ttsKeepAlive = null;
 function _startKeepAlive() {
   _stopKeepAlive();
   _ttsKeepAlive = setInterval(function() {
-    if (window.speechSynthesis && window.speechSynthesis.speaking && ttsSpeaking) {
+    if (!window.speechSynthesis || !ttsSpeaking) return;
+    if (window.speechSynthesis.speaking) {
+      // iOS Safari 15초 끊김 방지: 5초마다 pause/resume
       window.speechSynthesis.pause();
       window.speechSynthesis.resume();
+    } else if (ttsQueue.length > 0) {
+      // 말을 하고 있지 않은데 큐가 남아 있으면 자동 재시작
+      setTimeout(function() {
+        if (ttsSpeaking && ttsQueue.length > 0 && !window.speechSynthesis.speaking) {
+          speakNext(_ttsCurrentLabel);
+        }
+      }, 200);
     }
-  }, 10000);
+  }, 5000);
 }
 function _stopKeepAlive() {
   if (_ttsKeepAlive) { clearInterval(_ttsKeepAlive); _ttsKeepAlive = null; }
@@ -87,7 +96,7 @@ function setSpeed(v, btn) {
 }
 
 function splitSentences(text) {
-  // 1차: 문장 끝(마침표·물음표·느낌표·줄바꿈) 기준 분리
+  // 1차: 문장 부호 기준 분리
   let parts = text.split(/(?<=[.!?。！？\n])\s*/).filter(s => s.trim().length > 0);
   let result = [];
   for (const p of parts) {
@@ -96,7 +105,7 @@ function splitSentences(text) {
     if (trimmed.length <= 100) {
       result.push(trimmed);
     } else {
-      // 2차: 쉼표 기준 분리 (100자 초과 문장만)
+      // 2차: 쉼표 기준 분리 후 100자 단위로 합치기
       const subs = trimmed.split(/,\s*/).filter(s => s.trim().length > 0);
       let chunk = '';
       for (const s of subs) {
@@ -106,13 +115,15 @@ function splitSentences(text) {
           chunk = chunk ? chunk + ', ' + st : st;
         } else {
           if (chunk) result.push(chunk);
-          chunk = st.length <= 100 ? st : '';
-          if (st.length > 100) {
-            // 3차: 100자 단위 강제 분리
+          if (st.length <= 100) {
+            chunk = st;
+          } else {
+            // 3차: 강제 분리 (100자 초과 조각)
             for (let i = 0; i < st.length; i += 100) {
               const c = st.slice(i, i + 100).trim();
               if (c) result.push(c);
             }
+            chunk = '';
           }
         }
       }
@@ -156,14 +167,17 @@ function speakNext(label) {
   };
   utt.onend = onDone;
   utt.onerror = (e) => { if (e.error === 'interrupted') return; onDone(); };
-  const expectedMs = Math.max(8000, (sentence.length / ttsSpeed) * 300);
+  // 여유 있게 watchdog 시간 설정 (한국어 기준 글자당 약 400ms, 최소 8초)
+  const expectedMs = Math.max(8000, (sentence.length / ttsSpeed) * 400);
   window._ttsWatchdog = setTimeout(() => {
     if (!finished && ttsSpeaking) {
       finished = true;
       window.speechSynthesis.cancel();
-      setTimeout(() => { if (ttsSpeaking) speakNext(label); }, 100);
+      setTimeout(() => { if (ttsSpeaking) speakNext(label); }, 300);
     }
   }, expectedMs);
+  // iOS Safari: speak 직전 resume()으로 오디오 세션 활성화
+  try { window.speechSynthesis.resume(); } catch(e) {}
   window.speechSynthesis.speak(utt);
 }
 
