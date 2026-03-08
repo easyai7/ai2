@@ -1356,16 +1356,7 @@ function speakNext(label) {
     onDone();
   };
 
-  // 예상 재생 시간 계산 후 여유를 두고 watchdog 설정
-  // 25자 기준 약 3~4초 → 최대 8초 후에도 안 끝나면 강제 진행
-  const expectedMs = Math.max(5000, (sentence.length / ttsSpeed) * 200);
-  window._ttsWatchdog = setTimeout(() => {
-    if (!finished && ttsSpeaking) {
-      finished = true;
-      window.speechSynthesis.cancel();
-      setTimeout(() => { if (ttsSpeaking) speakNext(label); }, 100);
-    }
-  }, expectedMs);
+  // Watchdog removed to prevent TTS from being cut off mid‑speech
 
   window.speechSynthesis.speak(utt);
 }
@@ -1380,7 +1371,7 @@ function speakEl(id, label) {
 }
 function stopSpeech() {
   ttsSpeaking = false; ttsQueue = [];
-if (window._ttsWatchdog) { clearTimeout(window._ttsWatchdog); window._ttsWatchdog = null; }
+  _ttsCleanTimers();
   if (window.speechSynthesis) window.speechSynthesis.cancel();
   document.getElementById('nowPlaying').classList.remove('show');
 }
