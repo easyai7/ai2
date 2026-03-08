@@ -1380,7 +1380,7 @@ function speakEl(id, label) {
 }
 function stopSpeech() {
   ttsSpeaking = false; ttsQueue = [];
-  _ttsCleanTimers();
+if (window._ttsWatchdog) { clearTimeout(window._ttsWatchdog); window._ttsWatchdog = null; }
   if (window.speechSynthesis) window.speechSynthesis.cancel();
   document.getElementById('nowPlaying').classList.remove('show');
 }
