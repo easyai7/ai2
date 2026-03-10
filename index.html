@@ -1154,6 +1154,7 @@ function playAudio(num) {
   const np = document.getElementById('nowPlaying');
   const nt = document.getElementById('nowText');
   currentAudio = new Audio('audio/' + num + '.mp3');
+  currentAudio.volume = 1.0;
   currentAudio.playbackRate = ttsRate;
   currentAudio.play();
   if (nt) nt.textContent = num + '번 재생 중...';
