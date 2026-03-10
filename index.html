@@ -560,13 +560,11 @@ body {
 
 <!-- 헤더 -->
 <div class="hero">
-  <div class="hero-badge">📚 제1회 복습 앱</div>
+  <div class="hero-badge">📚 제1·2회 복습 앱</div>
   <h1><span>AI</span>는 어떻게 생각하는가?<br>— 기초 완전 이해</h1>
-  <div class="hero-sub">LLM의 작동 원리 · 2024년 11월 4일 강의</div>
-  <div class="hero-stats">
-    <div class="stat"><strong>3</strong>핵심 차이점</div>
-    <div class="stat"><strong>5</strong>작동 단계</div>
-    <div class="stat"><strong>2017</strong>혁명의 해</div>
+  <div class="hero-sub">LLM의 작동 원리 · 2026년 1월 6일 · 13일 강의</div>
+  <div style="background:rgba(255,255,255,0.15);border-radius:10px;padding:8px 12px;font-size:14px;color:#EDE9FE;display:flex;align-items:center;gap:8px;">
+    🔊 원활한 오디오 재생을 위해 크롬 브라우저에서 실행됩니다
   </div>
 </div>
 
@@ -1154,7 +1152,6 @@ function playAudio(num) {
   const np = document.getElementById('nowPlaying');
   const nt = document.getElementById('nowText');
   currentAudio = new Audio('audio/' + num + '.mp3');
-  currentAudio.volume = 1.0;
   currentAudio.playbackRate = ttsRate;
   currentAudio.play();
   if (nt) nt.textContent = num + '번 재생 중...';
