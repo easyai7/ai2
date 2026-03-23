@@ -1,253 +1,1507 @@
-
-<!DOCTYPE html><html lang="ko"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=2.0"><title>AI의 언어 처리 — 토큰·임베딩·어텐션 복습</title><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="apple-mobile-web-app-title" content="LLM복습2"><meta name="mobile-web-app-capable" content="yes"><meta name="theme-color" content="#1D4ED8">
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=2.0">
+<title>AI 할루시네이션 강의 복습</title>
+<meta name="theme-color" content="#1e293b">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="AI강의">
+<link rel="manifest" href="manifest_ai.json">
+<!-- OG / 카카오톡 미리보기 -->
 <meta property="og:type" content="website">
-<meta property="og:title" content="AI의 언어 처리 — 토큰·임베딩·어텐션 복습">
-<meta property="og:description" content="토큰화·임베딩·어텐션 메커니즘을 쉽게 배우는 AI 복습 앱. TTS 듣기, 퀴즈, 실전 프롬프트 설계까지.">
-<meta property="og:image" content="llm.png">
+<meta property="og:title" content="AI 할루시네이션 강의 복습">
+<meta property="og:description" content="AI가 왜 거짓말을 할까? 할루시네이션의 원인과 대처법을 배웁니다.">
+<meta property="og:image" content="https://easyai7.github.io/ai2/hallucination.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="AI의 언어 처리 — 토큰·임베딩·어텐션 복습">
-<meta name="twitter:description" content="토큰화·임베딩·어텐션 메커니즘을 쉽게 배우는 AI 복습 앱. TTS 듣기, 퀴즈, 실전 프롬프트 설계까지.">
-<meta name="twitter:image" content="llm.png"><style>:root { --bg: #f5f7fc; --card: #ffffff; --text: #111827; --text-sub: #4B5563; --blue: #1D4ED8; --blue-light: #3B82F6; --blue-bg: #EFF6FF; --blue-border: #93C5FD; --blue-dark: #1e3a8a; --teal: #0F766E; --teal-bg: #F0FDFA; --teal-border: #5EEAD4; --purple: #7C3AED; --purple-bg: #F3EEFF; --purple-border: #C4B5FD; --purple-dark: #5B21B6; --green: #065F46; --green-bg: #ECFDF5; --green-border: #6EE7B7; --red: #991B1B; --red-bg: #FEF2F2; --red-border: #FCA5A5; --orange: #92400E; --orange-bg: #FFFBEB; --orange-border: #FCD34D; --border: #E5E7EB; --shadow: 0 2px 10px rgba(0,0,0,0.08);}* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color: rgba(29,78,216,0.12); }body { font-family: 'Apple SD Gothic Neo', 'Malgun Gothic', '맑은 고딕', sans-serif; background: var(--bg); color: var(--text); font-size: 23px; line-height: 1.8; padding-bottom: 5rem;}/* ── 헤더 ── */.hero { background: linear-gradient(140deg, #0c1445 0%, #1D4ED8 55%, #3B82F6 100%); color: #fff; padding: 2rem 1.3rem 1.6rem; position: relative; overflow: hidden;}.hero::before { content: ''; position: absolute; width: 260px; height: 260px; border-radius: 50%; background: rgba(255,255,255,0.05); top: -80px; right: -60px;}.hero::after { content: ''; position: absolute; width: 140px; height: 140px; border-radius: 50%; background: rgba(255,255,255,0.04); bottom: -50px; left: 20px;}.hero-badge { display: inline-block; background: rgba(255,255,255,0.18); color: #BFDBFE; font-size: 16px; font-weight: 700; padding: 4px 13px; border-radius: 20px; margin-bottom: 10px; letter-spacing: 0.05em;}.hero h1 { font-size: 22px; font-weight: 900; line-height: 1.35; margin-bottom: 6px;}.hero h1 span { color: #93C5FD; }.hero-sub { font-size: 18px; color: rgba(255,255,255,0.75); margin-bottom: 1rem;}.hero-stats { display: flex; gap: 1rem; flex-wrap: wrap;}.stat { background: rgba(255,255,255,0.13); border-radius: 12px; padding: 0.5rem 1rem; font-size: 16px; font-weight: 700; color: #DBEAFE;}.stat strong { color: #fff; font-size: 24px; display: block; line-height: 1; margin-bottom: 2px; }/* ── TTS 바 ── */.tts-bar { background: var(--card); border-bottom: 2px solid var(--blue-border); padding: 0.7rem 1.1rem; display: flex; align-items: center; gap: 0.7rem; flex-wrap: wrap; box-shadow: 0 1px 4px rgba(0,0,0,0.06);}.tts-label { font-size: 17px; font-weight: 700; color: var(--blue); flex-shrink: 0; }.speed-btns { display: flex; gap: 0.35rem; }.speed-btn { background: var(--blue-bg); border: 2px solid var(--blue-border); border-radius: 8px; padding: 0.35rem 0.8rem; font-size: 16px; font-weight: 700; color: var(--blue); cursor: pointer; transition: all 0.15s;}.speed-btn.active { background: var(--blue); color: #fff; border-color: var(--blue); }.stop-btn { margin-left: auto; background: var(--red-bg); border: 2px solid var(--red-border); border-radius: 8px; padding: 0.35rem 0.9rem; font-size: 16px; font-weight: 700; color: var(--red); cursor: pointer;}.now-playing { width: 100%; font-size: 15px; color: var(--blue); font-weight: 600; display: none; align-items: center; gap: 0.4rem; margin-top: 0.2rem;}.now-playing.show { display: flex; }.pulse { width: 9px; height: 9px; background: var(--blue); border-radius: 50%; animation: pulse 0.7s infinite alternate;}@keyframes pulse { from { opacity: 1; transform: scale(1); } to { opacity: 0.3; transform: scale(0.6); } }/* ── 탭 내 TTS 버튼 ── */.tab-tts-bar { background: var(--blue-bg); border: 2px solid var(--blue-border); border-radius: 18px; padding: 1.1rem 1.2rem; margin-bottom: 1.4rem; display: flex; flex-direction: column; gap: 0.6rem;}.tab-tts-btn { width: 100%; background: var(--blue); color: #fff; border: none; border-radius: 14px; padding: 0.85rem 1rem; font-size: 24px; font-weight: 900; cursor: pointer; transition: background 0.15s; letter-spacing: -0.01em;}.tab-tts-btn:active { background: var(--blue-dark); }.tab-tts-stop { width: 100%; background: var(--red-bg); color: var(--red); border: 2px solid var(--red-border); border-radius: 14px; padding: 0.7rem 1.1rem; font-size: 22px; font-weight: 900; cursor: pointer; text-align: center;}/* ── 탭 ── */.tab-nav { position: sticky; top: 0; z-index: 100; background: #fff; border-bottom: 3px solid var(--blue-border); display: flex; overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch; box-shadow: 0 2px 6px rgba(0,0,0,0.07);}.tab-nav::-webkit-scrollbar { display: none; }.tab-btn { flex-shrink: 0; padding: 0.9rem 1rem; font-size: 18px; font-weight: 700; color: #9CA3AF; background: none; border: none; border-bottom: 4px solid transparent; cursor: pointer; white-space: nowrap; transition: all 0.18s;}.tab-btn.active { color: var(--blue); border-bottom-color: var(--blue); background: var(--blue-bg);}/* 스와이프 안내 */.swipe-hint { background: linear-gradient(90deg, #FFF7ED, #FFEDD5); color: #92400E; font-size: 16px; font-weight: 700; text-align: center; padding: 8px 12px; border-bottom: 2px solid #FCD34D; animation: hintBounce 2s ease-in-out infinite;}@keyframes hintBounce { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(6px); } 75% { transform: translateX(-6px); }}/* ── 패널 ── */.panels { padding: 1rem 1rem 2rem; }.panel { display: none; }.panel.active { display: block; animation: fadeUp 0.22s ease; }@keyframes fadeUp { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }/* ── 공통 카드 ── */.card { background: var(--card); border: 1.5px solid var(--border); border-radius: 18px; padding: 1.3rem 1.2rem; margin-bottom: 1.2rem; box-shadow: var(--shadow);}.card.blue { border-left: 5px solid var(--blue); }.card.teal { border-left: 5px solid var(--teal); }.card.purple { border-left: 5px solid var(--purple); }.card.green { border-left: 5px solid #10B981; }.card.orange { border-left: 5px solid #F59E0B; }.card.red { border-left: 5px solid #EF4444; }.sec-tag { display: inline-block; font-size: 15px; font-weight: 700; letter-spacing: 0.07em; color: var(--blue); margin-bottom: 4px;}.sec-tag.teal { color: var(--teal); }.sec-tag.purple { color: var(--purple); }.sec-title { font-size: 26px; font-weight: 900; color: var(--text); margin-bottom: 1rem; line-height: 1.3;}/* 설명 버튼 */.explain-btn { display: flex; align-items: center; gap: 12px; width: 100%; padding: 1rem 1.1rem; background: var(--blue-bg); border: 2px solid var(--blue-border); border-radius: 15px; cursor: pointer; font-family: inherit; margin-bottom: 10px; transition: all 0.18s; text-align: left;}.explain-btn:active { transform: scale(0.98); }.eb-icon { width: 48px; height: 48px; border-radius: 14px; flex-shrink: 0; background: linear-gradient(135deg, var(--blue-light), var(--blue-dark)); display: flex; align-items: center; justify-content: center; font-size: 22px; box-shadow: 0 3px 10px rgba(29,78,216,0.3);}.eb-icon.teal-ic { background: linear-gradient(135deg, #14B8A6, #0F766E); box-shadow: 0 3px 10px rgba(15,118,110,0.3); }.eb-icon.purple-ic { background: linear-gradient(135deg, #7C3AED, #5B21B6); box-shadow: 0 3px 10px rgba(124,58,237,0.3); }.eb-icon.green-ic { background: linear-gradient(135deg, #10B981, #065F46); box-shadow: 0 3px 10px rgba(16,185,129,0.3); }.eb-icon.orange-ic { background: linear-gradient(135deg, #F59E0B, #92400E); box-shadow: 0 3px 10px rgba(245,158,11,0.3); }.eb-icon.red-ic { background: linear-gradient(135deg, #EF4444, #991B1B); box-shadow: 0 3px 10px rgba(239,68,68,0.3); }.eb-body { flex: 1; }.eb-title { font-size: 19px; font-weight: 900; color: var(--blue-dark); }.eb-sub { font-size: 15px; color: var(--text-sub); margin-top: 2px; }.eb-arr { font-size: 20px; color: var(--blue); }.explain-btn.var-teal { background: var(--teal-bg); border-color: var(--teal-border); }.explain-btn.var-teal .eb-title { color: var(--teal); }.explain-btn.var-teal .eb-arr { color: #14B8A6; }.explain-btn.var-purple { background: var(--purple-bg); border-color: var(--purple-border); }.explain-btn.var-purple .eb-title { color: var(--purple-dark); }.explain-btn.var-purple .eb-arr { color: var(--purple); }.explain-btn.var-green { background: var(--green-bg); border-color: var(--green-border); }.explain-btn.var-green .eb-title { color: var(--green); }.explain-btn.var-green .eb-arr { color: #10B981; }.explain-btn.var-orange { background: var(--orange-bg); border-color: var(--orange-border); }.explain-btn.var-orange .eb-title { color: var(--orange); }.explain-btn.var-orange .eb-arr { color: #D97706; }.explain-btn.var-red { background: var(--red-bg); border-color: var(--red-border); }.explain-btn.var-red .eb-title { color: var(--red); }.explain-btn.var-red .eb-arr { color: #EF4444; }/* AI 응답 박스 */.ai-box { background: linear-gradient(135deg, #EFF6FF, #DBEAFE); border-radius: 16px; padding: 1.2rem; margin-bottom: 12px; border-left: 4px solid var(--blue); display: none;}.ai-box.show { display: block; }.ai-hd { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }.ai-av { width: 38px; height: 38px; border-radius: 50%; background: linear-gradient(135deg, var(--blue-light), var(--blue-dark)); display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0;}.ai-nm { font-size: 16px; font-weight: 900; color: var(--blue-dark); }.ai-lbl { font-size: 14px; color: var(--text-sub); }.ai-text { font-size: 22px; line-height: 1.9; color: var(--text); font-weight: 500; white-space: pre-wrap; }.ai-tts-row { display: flex; gap: 8px; margin-top: 12px; padding-top: 10px; border-top: 1px solid rgba(29,78,216,0.15);}.tts-play-btn { display: flex; align-items: center; gap: 6px; padding: 9px 18px; border-radius: 10px; background: var(--blue); color: #fff; border: none; font-family: inherit; font-size: 16px; font-weight: 700; cursor: pointer;}.tts-stop-btn { display: flex; align-items: center; gap: 6px; padding: 9px 14px; border-radius: 10px; background: #fff; color: var(--red); border: 2px solid var(--red-border); font-family: inherit; font-size: 16px; font-weight: 700; cursor: pointer;}/* 핵심 포인트 리스트 */.point-list { list-style: none; }.point-item { display: flex; align-items: flex-start; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--border); font-size: 20px; line-height: 1.7; color: var(--text-sub);}.point-item:last-child { border-bottom: none; }.pdot { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 900; flex-shrink: 0; margin-top: 2px;}/* 비교표 */.compare-tbl { width: 100%; border-collapse: collapse; font-size: 18px; margin-top: 4px; }.compare-tbl th { padding: 10px 12px; background: var(--blue-bg); color: var(--blue-dark); font-weight: 900; text-align: center;}.compare-tbl td { padding: 11px 12px; border-bottom: 1px solid var(--border); line-height: 1.65; vertical-align: top;}.compare-tbl tr:last-child td { border-bottom: none; }.bad { color: #DC2626; font-weight: 700; }.good { color: var(--green); font-weight: 700; }/* 스텝 */.steps { display: flex; flex-direction: column; gap: 0.7rem; }.step-item { display: flex; align-items: flex-start; gap: 14px; background: var(--card); border: 1.5px solid var(--border); border-radius: 14px; padding: 0.9rem 1rem; box-shadow: 0 1px 4px rgba(0,0,0,0.05);}.step-num { width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, var(--blue-light), var(--blue-dark)); color: #fff; font-size: 18px; font-weight: 900; display: flex; align-items: center; justify-content: center; flex-shrink: 0;}.step-title { font-size: 22px; font-weight: 900; color: var(--text); margin-bottom: 3px; }.step-desc { font-size: 20px; color: var(--text-sub); line-height: 1.7; }/* 강조 박스 */.highlight-box { background: linear-gradient(135deg, var(--blue-light), var(--blue-dark)); border-radius: 18px; padding: 1.3rem 1.2rem; margin-bottom: 1.2rem;}.hl-label { color: rgba(255,255,255,0.7); font-size: 15px; margin-bottom: 6px; }.hl-text { color: #fff; font-size: 22px; font-weight: 900; line-height: 1.6; }/* 퀴즈 */.score-banner { background: var(--blue-bg); border-radius: 16px; padding: 1.1rem 1.3rem; text-align: center; margin-bottom: 1.2rem; border: 2px solid var(--blue-border);}.sc-label { font-size: 16px; color: var(--text-sub); margin-bottom: 3px; }.sc-num { font-size: 44px; font-weight: 900; color: var(--blue-dark); }.sc-of { font-size: 20px; color: var(--text-sub); }.sc-msg { font-size: 17px; color: var(--text-sub); margin-top: 4px; }.quiz-card { background: var(--card); border: 1.5px solid var(--border); border-radius: 18px; padding: 1.3rem 1.2rem; margin-bottom: 1.1rem; box-shadow: var(--shadow);}.q-num { font-size: 15px; font-weight: 700; color: var(--blue); letter-spacing: 1px; margin-bottom: 7px; }.q-text { font-size: 21px; font-weight: 700; line-height: 1.6; color: var(--text); margin-bottom: 14px; }.q-opts { display: flex; flex-direction: column; gap: 9px; }.q-opt { padding: 14px 16px; border-radius: 12px; border: 2px solid var(--border); background: #fff; font-family: inherit; font-size: 19px; color: var(--text-sub); cursor: pointer; text-align: left; transition: all 0.16s; font-weight: 500; line-height: 1.55;}.q-opt:active { transform: scale(0.98); }.q-opt.correct { border-color: #10B981; background: var(--green-bg); color: var(--green); font-weight: 700; }.q-opt.wrong { border-color: #EF4444; background: var(--red-bg); color: var(--red); }.q-fb { margin-top: 10px; padding: 12px 14px; border-radius: 12px; font-size: 18px; font-weight: 500; line-height: 1.65; display: none;}.q-fb.show { display: block; }.q-fb.ok { background: var(--green-bg); color: var(--green); }.q-fb.ng { background: var(--red-bg); color: var(--red); }.reset-btn { display: block; width: 100%; padding: 15px; background: var(--blue); color: #fff; border: none; border-radius: 14px; font-family: inherit; font-size: 20px; font-weight: 700; cursor: pointer; margin-top: 4px; box-shadow: 0 3px 10px rgba(29,78,216,0.25);}/* 도우미 탭 */.chip-group { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 1rem; }.chip { padding: 11px 17px; border-radius: 20px; border: 2px solid var(--border); background: #fff; font-family: inherit; font-size: 17px; font-weight: 500; color: var(--text-sub); cursor: pointer; transition: all 0.16s;}.chip.on { border-color: var(--blue); background: var(--blue-bg); color: var(--blue-dark); font-weight: 700; }.chip:active { transform: scale(0.96); }.make-btn { display: block; width: 100%; padding: 15px; background: linear-gradient(135deg, var(--blue-light), var(--blue-dark)); color: #fff; border: none; border-radius: 14px; font-family: inherit; font-size: 17px; font-weight: 700; cursor: pointer; margin: 12px 0; box-shadow: 0 4px 14px rgba(29,78,216,0.28);}.make-btn:active { transform: scale(0.98); }.msg-result-box { background: var(--blue-bg); border: 2px dashed var(--blue-border); border-radius: 14px; padding: 1rem; margin-bottom: 10px; font-size: 20px; line-height: 1.75; color: var(--blue-dark); min-height: 56px;}.copy-btn { display: none; width: 100%; padding: 14px; background: var(--green-bg); color: var(--green); border: 2px solid var(--green-border); border-radius: 12px; font-family: inherit; font-size: 18px; font-weight: 700; cursor: pointer; margin-top: 4px;}/* 비포/애프터 카드 */.ba-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 1rem; }.ba-box { border-radius: 14px; padding: 0.9rem; font-size: 19px; line-height: 1.7; }.ba-box.before { background: var(--red-bg); border: 2px solid var(--red-border); }.ba-box.after { background: var(--green-bg); border: 2px solid var(--green-border); }.ba-label { font-size: 14px; font-weight: 900; letter-spacing: 0.06em; margin-bottom: 6px; }.ba-box.before .ba-label { color: var(--red); }.ba-box.after .ba-label { color: var(--green); }/* 토스트 */.toast { position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%) translateY(30px); background: #1F2937; color: #fff; border-radius: 12px; padding: 14px 22px; font-size: 17px; font-weight: 600; opacity: 0; transition: all 0.3s; pointer-events: none; z-index: 9999; max-width: 90vw; text-align: center;}.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }/* 관계표 */.rel-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 8px; }.rel-item { background: var(--blue-bg); border: 2px solid var(--blue-border); border-radius: 14px; padding: 0.9rem 1rem; text-align: center; font-size: 18px; font-weight: 600; line-height: 1.6; color: var(--blue-dark);}.rel-item .ri-big { font-size: 22px; font-weight: 900; color: var(--blue); margin-bottom: 4px; }/* 번호 배지 */.num-badge { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 50%; background: var(--blue); color: #fff; font-size: 14px; font-weight: 900; flex-shrink: 0; margin-top: 3px;}/* 카드별 듣기 버튼 */.card-tts-btn { display: inline-flex; align-items: center; gap: 8px; margin-top: 12px; padding: 12px 22px; background: var(--blue-bg); border: 2px solid var(--blue-border); border-radius: 14px; font-family: inherit; font-size: 20px; font-weight: 700; color: var(--blue); cursor: pointer; transition: all 0.15s;}.card-tts-btn:active { background: var(--blue); color: #fff; }@media (min-width: 640px) { .panels { max-width: 640px; margin: 0 auto; } }</style></head><body><!-- 헤더 --><div class="hero"> <div class="hero-badge">📚 2·3회차 복습 앱</div> <h1><span>AI</span>는 언어를 어떻게 처리하는가?<br>— 토큰·임베딩·어텐션</h1> <div class="hero-sub">언어를 숫자로 · 어텐션 메커니즘</div> <div class="hero-stats"> <div class="stat"><strong>10만</strong>토큰 수</div> <div class="stat"><strong>4096</strong>임베딩 차원</div> <div class="stat"><strong>3</strong>핵심 개념</div> </div></div><!-- TTS 바 --><div class="tts-bar"> <span class="tts-label">🔊 재생 속도</span> <div class="speed-btns"> <button class="speed-btn" onclick="setSpeed(0.8,this)">0.8×</button> <button class="speed-btn active" onclick="setSpeed(1.0,this)">1.0×</button> <button class="speed-btn" onclick="setSpeed(1.2,this)">1.2×</button> </div> <button class="stop-btn" onclick="stopSpeech()">⏹ 멈추기</button> <div class="now-playing" id="nowPlaying"> <div class="pulse"></div><span id="nowText">읽는 중...</span> </div></div><!-- 탭 --><nav class="tab-nav"> <button class="tab-btn active" data-tab="summary">📖 핵심정리</button> <button class="tab-btn" data-tab="token">🧩 토큰화</button> <button class="tab-btn" data-tab="embed">🔢 임베딩</button> <button class="tab-btn" data-tab="attention">🔦 어텐션</button> <button class="tab-btn" data-tab="quiz">✏️ 퀴즈</button> <button class="tab-btn" data-tab="helper">💬 도우미</button></nav><div class="swipe-hint" id="swipeHint">👉 메뉴를 옆으로 밀면 더 있습니다!</div><div class="panels"><!-- ═══════════════════ 핵심정리 ═══════════════════ --><div class="panel active" id="tab-summary"> <div class="card blue"> <div class="sec-tag">AI 강사 설명 듣기</div> <div class="sec-title">버튼을 눌러 설명을 들어요</div> <button class="explain-btn" onclick="askAI('token_why',this)"> <div class="eb-icon">🧩</div> <div class="eb-body"><div class="eb-title">토큰화가 왜 필요한가요?</div><div class="eb-sub">문장을 조각내는 이유 — 레고 블록 원리</div></div> <div class="eb-arr">▶</div> </button> <div class="ai-box" id="resp-token_why"> <div class="ai-hd"><div class="ai-av">👩‍🏫</div><div><div class="ai-nm">AI 강사</div><div class="ai-lbl">설명 중...</div></div></div> <div class="ai-text" id="text-token_why"></div> <div class="ai-tts-row"><button class="tts-play-btn" onclick="speakEl('text-token_why','토큰화 설명')">🔊 다시 듣기</button><button class="tts-stop-btn" onclick="stopSpeech()">⏹ 멈추기</button></div> </div> <button class="explain-btn var-teal" onclick="askAI('embed_what',this)"> <div class="eb-icon teal-ic">🔢</div> <div class="eb-body"><div class="eb-title">임베딩이란 무엇인가요?</div><div class="eb-sub">단어를 의미 있는 숫자로 — 의미 공간의 GPS</div></div> <div class="eb-arr">▶</div> </button> <div class="ai-box" id="resp-embed_what"> <div class="ai-hd"><div class="ai-av">👩‍🏫</div><div><div class="ai-nm">AI 강사</div><div class="ai-lbl">설명 중...</div></div></div> <div class="ai-text" id="text-embed_what"></div> <div class="ai-tts-row"><button class="tts-play-btn" onclick="speakEl('text-embed_what','임베딩 설명')">🔊 다시 듣기</button><button class="tts-stop-btn" onclick="stopSpeech()">⏹ 멈추기</button></div> </div> <button class="explain-btn var-purple" onclick="askAI('attention_what',this)"> <div class="eb-icon purple-ic">🔦</div> <div class="eb-body"><div class="eb-title">어텐션이란 무엇인가요?</div><div class="eb-sub">AI가 사람처럼 보이게 만드는 핵심 장치</div></div> <div class="eb-arr">▶</div> </button> <div class="ai-box" id="resp-attention_what"> <div class="ai-hd"><div class="ai-av">👩‍🏫</div><div><div class="ai-nm">AI 강사</div><div class="ai-lbl">설명 중...</div></div></div> <div class="ai-text" id="text-attention_what"></div> <div class="ai-tts-row"><button class="tts-play-btn" onclick="speakEl('text-attention_what','어텐션 설명')">🔊 다시 듣기</button><button class="tts-stop-btn" onclick="stopSpeech()">⏹ 멈추기</button></div> </div> <button class="explain-btn var-orange" onclick="askAI('hallucination',this)"> <div class="eb-icon orange-ic">⚠️</div> <div class="eb-body"><div class="eb-title">할루시네이션은 왜 생기나요?</div><div class="eb-sub">어텐션이 잘못 작동할 때 — 거짓말이 아닌 이유</div></div> <div class="eb-arr">▶</div> </button> <div class="ai-box" id="resp-hallucination"> <div class="ai-hd"><div class="ai-av">👩‍🏫</div><div><div class="ai-nm">AI 강사</div><div class="ai-lbl">설명 중...</div></div></div> <div class="ai-text" id="text-hallucination"></div> <div class="ai-tts-row"><button class="tts-play-btn" onclick="speakEl('text-hallucination','할루시네이션 설명')">🔊 다시 듣기</button><button class="tts-stop-btn" onclick="stopSpeech()">⏹ 멈추기</button></div> </div> <button class="explain-btn var-green" onclick="askAI('prompt_tip',this)"> <div class="eb-icon green-ic">💡</div> <div class="eb-body"><div class="eb-title">이걸 알면 프롬프트가 달라진다</div><div class="eb-sub">토큰·임베딩·어텐션 원리를 활용한 실전 팁</div></div> <div class="eb-arr">▶</div> </button> <div class="ai-box" id="resp-prompt_tip"> <div class="ai-hd"><div class="ai-av">👩‍🏫</div><div><div class="ai-nm">AI 강사</div><div class="ai-lbl">설명 중...</div></div></div> <div class="ai-text" id="text-prompt_tip"></div> <div class="ai-tts-row"><button class="tts-play-btn" onclick="speakEl('text-prompt_tip','프롬프트 팁')">🔊 다시 듣기</button><button class="tts-stop-btn" onclick="stopSpeech()">⏹ 멈추기</button></div> </div> </div> <div class="highlight-box"> <div class="hl-label">🎯 오늘의 핵심 한 문장</div> <div class="hl-text">AI는 정답을 아는 존재가 아니라<br>어텐션으로 문맥을 잡고<br>확률로 다음 말을 고르는 기계입니다</div> </div> <div class="card"> <div class="sec-tag">📊 세 개념 한눈에 비교</div> <div class="sec-title">토큰 → 임베딩 → 어텐션</div> <table class="compare-tbl"> <tr><th>개념</th><th>하는 일</th><th>비유</th></tr> <tr><td><b>토큰화</b></td><td>문장을 조각으로 분리</td><td>레고 블록 분해</td></tr> <tr><td><b>임베딩</b></td><td>조각을 의미 있는 숫자로 변환</td><td>의미 공간의 GPS</td></tr> <tr><td><b>어텐션</b></td><td>중요한 정보에 비중을 둠</td><td>스포트라이트</td></tr> </table> </div></div><!-- /panel summary --><!-- ═══════════════════ 토큰화 ═══════════════════ --><div class="panel" id="tab-token"> <div class="card blue"> <div class="sec-title">문장을 조각으로 나누는 법</div> <ul class="point-list"> <li class="point-item"> <div class="pdot" style="background:#EFF6FF;color:#1D4ED8;">🧩</div> <span><b>토큰화(Tokenization)</b>란 문장을 분석 가능한 작은 조각으로 나누는 작업입니다. AI는 문장 전체를 한 번에 처리할 수 없어서 반드시 이 단계가 필요합니다.</span> </li> <li class="point-item"> <div class="pdot" style="background:#EFF6FF;color:#1D4ED8;">📌</div> <span><b>예시:</b> '하나님께서 세상을 사랑하사' → '하나님' / '께서' / '세상' / '을' / '사랑' / '하사' 로 분리됩니다.</span> </li> <li class="point-item"> <div class="pdot" style="background:#EFF6FF;color:#1D4ED8;">🔢</div> <span>ChatGPT는 약 <b>10만 개의 토큰</b>으로 무한한 문장을 이해하고 생성합니다. 조각의 수는 한정적이지만, 조합은 무한합니다.</span> </li> </ul> <button class="card-tts-btn" onclick="speakCard('tk1')">🔊 이 카드 듣기</button> </div> <div class="card"> <div class="sec-tag">🧱 레고 블록 비유</div> <div class="sec-title">토큰화 = 레고 블록 분해</div> <ul class="point-list"> <li class="point-item"><div class="pdot" style="background:#ECFDF5;color:#065F46;">✅</div><span>각 블록(토큰)을 <b>재사용</b>할 수 있습니다. '사랑'이라는 토큰은 '하나님의 사랑', '사랑합니다', '사랑의 편지'에 모두 쓰입니다.</span></li> <li class="point-item"><div class="pdot" style="background:#ECFDF5;color:#065F46;">✅</div><span>다른 구조물에도 <b>같은 블록</b>을 쓸 수 있습니다. 10만 개 조각으로 무한한 표현이 가능합니다.</span></li> <li class="point-item"><div class="pdot" style="background:#ECFDF5;color:#065F46;">✅</div><span>새로운 단어도 <b>조각으로 나눠</b> 의미를 추측합니다. '인공지능스러운' → '인공지능' + '스럽' + '은'으로 분해 가능합니다.</span></li> </ul> <button class="card-tts-btn" onclick="speakCard('tk2')">🔊 이 카드 듣기</button> </div> <div class="card"> <div class="sec-tag">❓ 왜 필요한가</div> <div class="sec-title">토큰화가 필요한 3가지 이유</div> <div class="steps"> <div class="step-item"> <div class="step-num">1</div> <div><div class="step-title">불가능한 암기</div><div class="step-desc">수백만 개 단어를 모두 외우는 것은 불가능합니다. 매일 새로운 단어가 만들어지기 때문입니다.</div></div> </div> <div class="step-item"> <div class="step-num">2</div> <div><div class="step-title">효율적 처리</div><div class="step-desc">'놀다', '놀고', '놀았다'를 '놀' + 조사로 이해하면 훨씬 효율적입니다.</div></div> </div> <div class="step-item"> <div class="step-num">3</div> <div><div class="step-title">새 단어 대응</div><div class="step-desc">'인공지능스러운'을 '인공지능' + '스럽' + '은'으로 나눠 의미를 추측할 수 있습니다.</div></div> </div> </div> <button class="card-tts-btn" onclick="speakCard('tk3')">🔊 이 카드 듣기</button> </div> <div class="card orange"> <div class="sec-tag">💡 토큰화를 알면 프롬프트가 달라진다</div> <div class="sec-title">실전 3원칙</div> <div style="margin-bottom:1rem;"> <div style="font-size:19px;font-weight:900;margin-bottom:6px;">원칙 1 · 간결하고 명확하게</div> <div class="ba-row"> <div class="ba-box before"><div class="ba-label">❌ BEFORE (~50토큰)</div>'저는 다음 주일에 우리 교회 성도들 앞에서 설교를 하려고 하는데요, 그런데 어떤 본문으로 할지 아직 정하지 못했고...'</div> <div class="ba-box after"><div class="ba-label">✅ AFTER (~20토큰)</div>'추수감사절 설교 본문 추천 3가지와 각 본문의 핵심 메시지를 알려줘'</div> </div> </div> <div style="margin-bottom:1rem;"> <div style="font-size:19px;font-weight:900;margin-bottom:6px;">원칙 2 · 중요한 질문은 영어 고려</div> <div class="ba-row"> <div class="ba-box before"><div class="ba-label">한글 (15 토큰)</div>'빌립보서 2장 5-11절의 그리스도 찬송 해석'</div> <div class="ba-box after"><div class="ba-label">영어 (8 토큰)</div>'Philippians 2:5-11 Christ hymn interpretation'</div> </div> <div style="font-size:16px;color:var(--text-sub);margin-top:6px;">한글이 토큰 효율이 낮습니다. 복잡한 질문은 영어로 하면 더 정확할 수 있어요.</div> </div> <div> <div style="font-size:19px;font-weight:900;margin-bottom:6px;">원칙 3 · 핵심 키워드를 명확히</div> <div class="ba-row"> <div class="ba-box before"><div class="ba-label">❌ 모호</div>'그것 좀 설명해줘' — '그것'이 무엇인지 AI가 알 수 없습니다.</div> <div class="ba-box after"><div class="ba-label">✅ 명확</div>'칭의와 성화의 차이를 설명해줘' — 핵심 토큰이 분명합니다.</div> </div> </div> <button class="card-tts-btn" onclick="speakCard('tk4')">🔊 이 카드 듣기</button> </div> <div class="tab-tts-bar" style="border-radius:18px;border:2px solid var(--blue-border);margin-top:0.5rem;"> <button class="tab-tts-btn" onclick="speakTab('token')">🔊 전체 이어듣기</button> <button class="tab-tts-stop" onclick="stopSpeech()">⏹ 멈추기</button> </div></div><!-- /panel token --><!-- ═══════════════════ 임베딩 ═══════════════════ --><div class="panel" id="tab-embed"> <div class="card teal"> <div class="sec-title">단어를 의미 있는 숫자로 변환</div> <ul class="point-list"> <li class="point-item"> <div class="pdot" style="background:#F0FDFA;color:#0F766E;">🔢</div> <span><b>단순 번호 방식(❌)</b>: 사랑=1번, 미움=2번 → 의미가 사라집니다. 숫자 사이의 거리에 뜻이 없기 때문입니다.</span> </li> <li class="point-item"> <div class="pdot" style="background:#F0FDFA;color:#0F766E;">✅</div> <span><b>임베딩 방식(✅)</b>: 사랑 = [0.8, 0.9, −0.1, 0.3, ...] → 숫자 패턴이 의미를 담습니다. 비슷한 패턴 = 비슷한 의미!</span> </li> <li class="point-item"> <div class="pdot" style="background:#F0FDFA;color:#0F766E;">🌏</div> <span>임베딩은 단어들을 <b>'의미 지도' 위에 배치</b>하여 서로의 관련성을 표현합니다. 함께 자주 쓰이는 단어들은 이 지도에서 가까이 놓입니다.</span> </li> </ul> <button class="card-tts-btn" onclick="speakCard('em1')">🔊 이 카드 듣기</button> </div> <div class="card"> <div class="sec-tag">📍 벡터란 무엇인가</div> <div class="sec-title">위치를 숫자로 표현하는 방식</div> <div class="rel-grid"> <div class="rel-item"><div class="ri-big">🏠</div>일상의 벡터<br><span style="font-size:15px;font-weight:500;">서울시 강남구 역삼동<br>→ 4개 숫자로 위치 표현</span></div> <div class="rel-item"><div class="ri-big">📡</div>GPS 좌표<br><span style="font-size:15px;font-weight:500;">(위도 37.5, 경도 127.0)<br>→ 2개 숫자로 위치 표현</span></div> <div class="rel-item" style="grid-column:span 2;"><div class="ri-big">🧠</div>AI의 벡터 (임베딩)<br><span style="font-size:15px;font-weight:500;">'사랑' = [0.82, 0.31, −0.15, ...] 4096개 숫자<br>벡터는 거리와 방향의 관계로만 설정되며,<br>들어온 질문과의 연결 상황에 따라 활성화가 유동적입니다.</span></div> </div> <button class="card-tts-btn" onclick="speakCard('em2')">🔊 이 카드 듣기</button> </div> <div class="card"> <div class="sec-tag">🔬 의미를 숫자로 담는 비밀</div> <div class="sec-title">함께 등장하는 단어 패턴</div> <table class="compare-tbl"> <tr><th>단어</th><th>자주 함께 등장</th><th>드물게 등장</th></tr> <tr><td><b>사랑</b></td><td>기쁨, 행복, 마음</td><td>의자, 컴퓨터</td></tr> <tr><td><b>믿음</b></td><td>소망, 하나님, 사랑</td><td>의심, 불안 (반대편)</td></tr> </table> <div style="margin-top:12px;padding:10px 14px;background:var(--blue-bg);border-radius:12px;font-size:17px;color:var(--blue-dark);"> 🔑 AI는 수십억 문장을 읽으면서 이런 패턴을 발견하고 숫자로 압축합니다.<br><b>비슷한 패턴 = 비슷한 숫자!</b> </div> <button class="card-tts-btn" onclick="speakCard('em3')">🔊 이 카드 듣기</button> </div> <div class="card"> <div class="sec-tag">↔️ 거리와 유사성</div> <div class="sec-title">가까운 숫자 = 비슷한 의미</div> <ul class="point-list"> <li class="point-item"><div class="pdot" style="background:#ECFDF5;color:#065F46;">💚</div><span><b>사랑 ↔ 애정</b> — 거리 매우 가까움 (유사어)</span></li> <li class="point-item"><div class="pdot" style="background:#EFF6FF;color:#1D4ED8;">💙</div><span><b>사랑 ↔ 좋아함</b> — 거리 가까움 (관련어)</span></li> <li class="point-item"><div class="pdot" style="background:#FFFBEB;color:#92400E;">🟡</div><span><b>사랑 ↔ 미움</b> — 멀지만 완전히 멀지는 않음 (둘 다 강한 감정)</span></li> <li class="point-item"><div class="pdot" style="background:#FEF2F2;color:#991B1B;">❤️</div><span><b>사랑 ↔ 의자</b> — 거리 매우 멂 (무관한 개념)</span></li> </ul> <button class="card-tts-btn" onclick="speakCard('em4')">🔊 이 카드 듣기</button> </div> <div class="card"> <div class="sec-tag">✨ 단어 산술의 마법</div> <div class="sec-title">왕 − 남자 + 여자 = 여왕</div> <div class="steps"> <div class="step-item"> <div class="step-num">1</div> <div><div class="step-title">왕의 벡터</div><div class="step-desc">'통치자' + '남성'의 의미가 숫자로 담겨 있습니다.</div></div> </div> <div class="step-item"> <div class="step-num">2</div> <div><div class="step-title">남자 빼기</div><div class="step-desc">'남성' 벡터를 빼면 '통치자'만 남습니다.</div></div> </div> <div class="step-item"> <div class="step-num">3</div> <div><div class="step-title">여자 더하기</div><div class="step-desc">'여성' 벡터를 더하면 '여성 통치자' = 여왕!</div></div> </div> </div> <div style="margin-top:12px;font-size:17px;color:var(--text-sub);line-height:1.7;"> 다른 예시: 파리 − 프랑스 + 한국 = 서울<br> 목회적 예시: 믿음 − 개인 + 공동체 = 교회 </div> <button class="card-tts-btn" onclick="speakCard('em5')">🔊 이 카드 듣기</button> </div> <div class="card"> <div class="sec-tag">🗺️ 의미 공간 — 단어들의 우주</div> <div class="sec-title">비슷한 단어끼리 모인 구역들</div> <div class="rel-grid"> <div class="rel-item"><div class="ri-big">⛪</div>종교 영역<br><span style="font-size:14px;">하나님, 예수, 성령, 구원, 은혜, 믿음</span></div> <div class="rel-item"><div class="ri-big">❤️</div>감정 영역<br><span style="font-size:14px;">사랑, 기쁨, 슬픔, 분노, 평안</span></div> <div class="rel-item"><div class="ri-big">🍞</div>음식 영역<br><span style="font-size:14px;">밥, 빵, 포도주, 떡, 생선</span></div> <div class="rel-item"><div class="ri-big">🏃</div>행동 영역<br><span style="font-size:14px;">걷다, 뛰다, 앉다, 서다</span></div> </div> <div style="margin-top:12px;padding:10px 14px;background:var(--teal-bg);border-radius:12px;font-size:16px;color:var(--teal);border:1px solid var(--teal-border);"> ⚠️ 어느 지점에 <b>고정된 상태가 아니라</b> 거리와 방향의 관계로만 설정되어 있고, 들어온 질문과의 연결 상황에 따라 활성화가 유동적입니다. </div> <button class="card-tts-btn" onclick="speakCard('em6')">🔊 이 카드 듣기</button> </div> <div class="card orange"> <div class="sec-tag">💡 임베딩을 알면 프롬프트가 달라진다</div> <div class="sec-title">3가지 실전 원칙</div> <div style="margin-bottom:1.2rem;"> <div style="font-size:19px;font-weight:900;margin-bottom:6px;">원칙 1 · 명확한 단어로 정확한 좌표 설정</div> <div class="ba-row"> <div class="ba-box before"><div class="ba-label">❌ 모호한 단어</div>'글 좀 써줘' — '글'이 의미 공간에서 너무 넓음. 소설? 논문? 설교문?</div> <div class="ba-box after"><div class="ba-label">✅ 명확한 단어</div>'주일학교 초등 3-4학년용 다윗과 골리앗 이야기 교안을 40분 수업용으로 작성해줘'</div> </div> </div> <div style="margin-bottom:1.2rem;"> <div style="font-size:19px;font-weight:900;margin-bottom:6px;">원칙 2 · 추상적보다 구체적 단어</div> <div class="ba-row"> <div class="ba-box before"><div class="ba-label">❌ 추상적</div>'좋은 설교 만들어줘' — '좋은'이 너무 막연합니다.</div> <div class="ba-box after"><div class="ba-label">✅ 구체적</div>'청중의 마음을 움직이는 감동적인 설교 초안을 작성해줘'</div> </div> </div> <div> <div style="font-size:19px;font-weight:900;margin-bottom:6px;">원칙 3 · 맥락 단어를 추가해서 좌표를 좁혀라</div> <div style="font-size:17px;color:var(--text-sub);margin-bottom:8px;">공식: [핵심 단어] + [맥락 1] + [맥락 2] + [맥락 3] = 정확한 좌표</div> <div class="ba-row"> <div class="ba-box before"><div class="ba-label">❌ 맥락 없음</div>'사랑에 대해 설명해줘' — 연애? 가족애? 하나님 사랑? AI가 분산됩니다.</div> <div class="ba-box after"><div class="ba-label">✅ 맥락 추가</div>'고린도전서 13장과 요한일서 4:8에 나타난 사랑의 신학적 의미를 비교 설명해줘'</div> </div> </div> <button class="card-tts-btn" onclick="speakCard('em7')">🔊 이 카드 듣기</button> </div> <div class="tab-tts-bar" style="border-radius:18px;border:2px solid var(--blue-border);margin-top:0.5rem;"> <button class="tab-tts-btn" onclick="speakTab('embed')">🔊 전체 이어듣기</button> <button class="tab-tts-stop" onclick="stopSpeech()">⏹ 멈추기</button> </div></div><!-- /panel embed --><!-- ═══════════════════ 어텐션 ═══════════════════ --><div class="panel" id="tab-attention"> <div class="card purple"> <div class="sec-title">지금 필요한 정보에 더 큰 비중을 두는 방식</div> <ul class="point-list"> <li class="point-item"> <div class="pdot" style="background:var(--purple-bg);color:var(--purple);">🔦</div> <span>어텐션은 <b>모든 단어를 똑같이 취급하지 않습니다.</b> 지금 문맥에서 중요한 단어에 더 큰 가중치를 둡니다.</span> </li> <li class="point-item"> <div class="pdot" style="background:var(--purple-bg);color:var(--purple);">⚙️</div> <span>핵심 질문: <b>"지금 다음 말을 만들기 위해 앞에 나온 어떤 단어가 얼마나 도움이 되는가?"</b> — AI는 이 질문을 수천, 수만 번 숫자로 계산합니다.</span> </li> <li class="point-item"> <div class="pdot" style="background:var(--purple-bg);color:var(--purple);">🎯</div> <span>이 계산 규칙이 <b>어텐션 메커니즘</b>입니다. 가중치(비중)는 의식이나 판단이 아니라 순수한 계산의 결과입니다.</span> </li> </ul> <button class="card-tts-btn" onclick="speakCard('at1')">🔊 이 카드 듣기</button> </div> <div class="card"> <div class="sec-tag">🧠 인간의 사고도 '집중'으로 이루어진다</div> <div class="sec-title">AI는 이 구조를 계산으로 만들어냅니다</div> <div class="steps"> <div class="step-item"> <div class="step-num">1</div> <div><div class="step-title">선택적 주의</div><div class="step-desc">중요한 말에 귀가 쫑긋해집니다. 설교에서 '그러나', '왜냐하면', '결론적으로'에 자연스럽게 집중하는 것처럼요.</div></div> </div> <div class="step-item"> <div class="step-num">2</div> <div><div class="step-title">키워드 집중</div><div class="step-desc">문장 속 중요한 키워드를 더 집중해서 처리합니다.</div></div> </div> <div class="step-item"> <div class="step-num">3</div> <div><div class="step-title">구조적 사고</div><div class="step-desc">중요한 것에 더 많은 주의를 두는 구조 — AI가 결과적으로 매우 비슷한 구조를 계산으로 만들어냅니다.</div></div> </div> </div> <button class="card-tts-btn" onclick="speakCard('at2')">🔊 이 카드 듣기</button> </div> <div class="card"> <div class="sec-tag">⚠️ 가중치의 정체</div> <div class="sec-title">많은 사람들의 오해</div> <table class="compare-tbl"> <tr><th>오해</th><th>실제</th></tr> <tr><td class="bad">"AI가 이게 중요하다고 판단했구나"</td><td class="good">이 단어가 다음 단어를 예측하는 데 얼마나 도움이 되었는지를 숫자로 계산한 결과</td></tr> <tr><td class="bad">의식 ❌ / 판단 ❌</td><td class="good">계산 ✅ (수천, 수만 번의 숫자 연산)</td></tr> </table> <div style="margin-top:12px;padding:10px 14px;background:var(--purple-bg);border-radius:12px;font-size:17px;color:var(--purple-dark);border:1px solid var(--purple-border);"> 개발자가 한 일: '이 단어는 중요해'라고 가르치지 않음. 대신 계산 규칙을 부여함. </div> <button class="card-tts-btn" onclick="speakCard('at3')">🔊 이 카드 듣기</button> </div> <div class="card"> <div class="sec-tag">🎲 그래서 확률이 된다</div> <div class="sec-title">AI 출력은 항상 확률적입니다</div> <div class="steps"> <div class="step-item"> <div class="step-num">1</div> <div><div class="step-title">여러 후보</div><div class="step-desc">하나의 정답이 아닙니다. 다음에 올 수 있는 단어 후보가 여럿 있습니다.</div></div> </div> <div class="step-item"> <div class="step-num">2</div> <div><div class="step-title">확률 계산</div><div class="step-desc">어텐션 결과를 반영해 각 후보의 확률을 계산합니다.</div></div> </div> <div class="step-item"> <div class="step-num">3</div> <div><div class="step-title">선택</div><div class="step-desc">가능성 중 하나를 선택합니다. 이것이 무작위가 아닌 <b>문맥 기반 계산</b>입니다.</div></div> </div> </div> <button class="card-tts-btn" onclick="speakCard('at4')">🔊 이 카드 듣기</button> </div> <div class="card red"> <div class="sec-tag">🚨 어텐션이 잘못 붙을 때 — 할루시네이션</div> <div class="sec-title">AI가 거짓말하는 게 아닙니다</div> <ul class="point-list"> <li class="point-item"><div class="pdot" style="background:var(--red-bg);color:var(--red);">1</div><span><b>질문이 모호하면</b> — 엉뚱한 단어에 집중합니다.</span></li> <li class="point-item"><div class="pdot" style="background:var(--red-bg);color:var(--red);">2</div><span><b>정보가 부족하면</b> — 그럴듯하게 채웁니다.</span></li> <li class="point-item"><div class="pdot" style="background:var(--red-bg);color:var(--red);">3</div><span><b>대화가 길어지면</b> — 처음 조건을 잊습니다.</span></li> </ul> <div style="margin-top:12px;padding:10px 14px;background:var(--red-bg);border-radius:12px;font-size:17px;color:var(--red);border:1px solid var(--red-border);"> 이것이 <b>할루시네이션</b>입니다. AI가 거짓말하려는 게 아니라 집중할 근거가 부족한 상태에서 계산을 계속했기 때문입니다. </div> <button class="card-tts-btn" onclick="speakCard('at5')">🔊 이 카드 듣기</button> </div> <div class="card"> <div class="sec-tag">🗺️ 어텐션: 의미 지도 위에서 일어나는 일</div> <div class="sec-title">어텐션은 의미 지도 위에서 지금 질문과 가장 가까운 곳에 집중 조명을 비추는 장치입니다</div> <div class="steps"> <div class="step-item"> <div class="step-num">1</div> <div><div class="step-title">기존 위치</div><div class="step-desc">이미 위치가 있는 의미들 중에서 탐색합니다.</div></div> </div> <div class="step-item"> <div class="step-num">2</div> <div><div class="step-title">맥락 판단</div><div class="step-desc">지금 맥락에 더 도움이 되는 곳에 집중합니다.</div></div> </div> <div class="step-item"> <div class="step-num">3</div> <div><div class="step-title">가중치 부여</div><div class="step-desc">가중치를 두는 계산을 합니다. 그래서 그럴듯한 흐름이 만들어집니다.</div></div> </div> </div> <button class="card-tts-btn" onclick="speakCard('at6')">🔊 이 카드 듣기</button> </div> <div class="card green"> <div class="sec-tag">💡 AI를 잘 쓰는 사람은 어텐션을 잘 설계합니다</div> <div class="sec-title">AI에게 집중할 대상을 잘 지정해 주는 사람이 AI를 잘 쓰는 사람입니다</div> <div class="steps"> <div class="step-item"> <div class="step-num">1</div> <div><div class="step-title">중요도 명시</div><div class="step-desc">무엇이 중요한지 명확히 지정합니다. "특히 ~에 초점을 맞춰", "핵심은 ~이야"처럼요.</div></div> </div> <div class="step-item"> <div class="step-num">2</div> <div><div class="step-title">핵심 조건 표시</div><div class="step-desc">어떤 조건이 핵심인지 표시합니다. "~한 경우에만", "~를 제외하고"처럼요.</div></div> </div> <div class="step-item"> <div class="step-num">3</div> <div><div class="step-title">반복 강조</div><div class="step-desc">무엇을 반복해서 강조할지 결정합니다. 중요한 조건을 앞과 뒤에 모두 넣으세요.</div></div> </div> </div> <button class="card-tts-btn" onclick="speakCard('at7')">🔊 이 카드 듣기</button> </div> <div class="highlight-box"> <div class="hl-label">🧠 왜 이렇게 '사고처럼' 보이는가</div> <div class="hl-text">AI는 '개인의 생각'이 아니라<br>'인류 언어가 축적한 사고의 외형'을 붙잡습니다.<br>그래서 치밀합니다.</div> </div> <div class="card"> <div class="sec-tag">🚧 결정적 한계: AI는 인간이 아니다</div> <div class="sec-title">구조는 있지만 지향성과 책임이 없다</div> <table class="compare-tbl"> <tr><th>인간이 가진 것</th><th>AI에게 없는 것</th></tr> <tr><td>목적을 스스로 세움</td><td class="bad">스스로 세우지 못함</td></tr> <tr><td>의미를 묻고 추구함</td><td class="bad">의미를 묻지 않음</td></tr> <tr><td>틀리면 괴로워함</td><td class="bad">틀려도 괴로워하지 않음</td></tr> <tr><td>옳아도 책임을 짐</td><td class="bad">옳아도 책임지지 않음</td></tr> </table> <div style="margin-top:12px;font-size:17px;color:var(--text-sub);"> AI를 두려워할 필요도 없고, 맹신할 필요도 없습니다. 원리를 이해하면 AI는 굉장히 강력한 도구가 됩니다. </div> <button class="card-tts-btn" onclick="speakCard('at8')">🔊 이 카드 듣기</button> </div> <div class="tab-tts-bar" style="border-radius:18px;border:2px solid var(--blue-border);margin-top:0.5rem;"> <button class="tab-tts-btn" onclick="speakTab('attention')">🔊 전체 이어듣기</button> <button class="tab-tts-stop" onclick="stopSpeech()">⏹ 멈추기</button> </div></div><!-- /panel attention --><!-- ═══════════════════ 퀴즈 ═══════════════════ --><div class="panel" id="tab-quiz"> <div class="score-banner"> <div class="sc-label">현재 점수</div> <div><span class="sc-num" id="scoreNum">0</span><span class="sc-of"> / 8</span></div> <div class="sc-msg" id="scoreMsg">문제를 풀어보세요!</div> </div> <div class="quiz-card" id="q1"> <div class="q-num">Q1 · 토큰화</div> <div class="q-text">AI가 문장을 작은 조각으로 나누는 작업을 무엇이라고 하나요?</div> <div class="q-opts"> <button class="q-opt" onclick="answer('q1',this,false)">임베딩 (Embedding)</button> <button class="q-opt" onclick="answer('q1',this,true)">토큰화 (Tokenization)</button> <button class="q-opt" onclick="answer('q1',this,false)">어텐션 (Attention)</button> <button class="q-opt" onclick="answer('q1',this,false)">벡터화 (Vectorization)</button> </div> <div class="q-fb" id="q1-fb"></div> </div> <div class="quiz-card" id="q2"> <div class="q-num">Q2 · 토큰화</div> <div class="q-text">ChatGPT가 사용하는 기본 토큰 개수는 약 얼마인가요?</div> <div class="q-opts"> <button class="q-opt" onclick="answer('q2',this,false)">약 1만 개</button> <button class="q-opt" onclick="answer('q2',this,false)">약 5만 개</button> <button class="q-opt" onclick="answer('q2',this,true)">약 10만 개</button> <button class="q-opt" onclick="answer('q2',this,false)">약 100만 개</button> </div> <div class="q-fb" id="q2-fb"></div> </div> <div class="quiz-card" id="q3"> <div class="q-num">Q3 · 임베딩</div> <div class="q-text">임베딩에서 단어를 표현하는 숫자의 개수(차원)는 일반적으로 어느 정도인가요?</div> <div class="q-opts"> <button class="q-opt" onclick="answer('q3',this,false)">10개</button> <button class="q-opt" onclick="answer('q3',this,false)">100개</button> <button class="q-opt" onclick="answer('q3',this,false)">1,000개</button> <button class="q-opt" onclick="answer('q3',this,true)">4,096개 (또는 그 이상)</button> </div> <div class="q-fb" id="q3-fb"></div> </div> <div class="quiz-card" id="q4"> <div class="q-num">Q4 · 임베딩</div> <div class="q-text">'왕 − 남자 + 여자 = ?'의 결과로 임베딩 공간에서 가장 가까운 단어는 무엇인가요?</div> <div class="q-opts"> <button class="q-opt" onclick="answer('q4',this,false)">공주</button> <button class="q-opt" onclick="answer('q4',this,true)">여왕</button> <button class="q-opt" onclick="answer('q4',this,false)">여성</button> <button class="q-opt" onclick="answer('q4',this,false)">귀족</button> </div> <div class="q-fb" id="q4-fb"></div> </div> <div class="quiz-card" id="q5"> <div class="q-num">Q5 · 임베딩</div> <div class="q-text">임베딩 공간에서 '사랑'과 가장 가까이 위치하는 단어는 무엇인가요?</div> <div class="q-opts"> <button class="q-opt" onclick="answer('q5',this,false)">의자</button> <button class="q-opt" onclick="answer('q5',this,false)">컴퓨터</button> <button class="q-opt" onclick="answer('q5',this,true)">애정</button> <button class="q-opt" onclick="answer('q5',this,false)">건물</button> </div> <div class="q-fb" id="q5-fb"></div> </div> <div class="quiz-card" id="q6"> <div class="q-num">Q6 · 어텐션</div> <div class="q-text">어텐션 메커니즘의 핵심 질문은 무엇인가요?</div> <div class="q-opts"> <button class="q-opt" onclick="answer('q6',this,false)">"이 단어가 문법적으로 올바른가?"</button> <button class="q-opt" onclick="answer('q6',this,true)">"지금 다음 말을 만들기 위해 앞에 나온 어떤 단어가 얼마나 도움이 되는가?"</button> <button class="q-opt" onclick="answer('q6',this,false)">"이 문장이 의미 있는가?"</button> <button class="q-opt" onclick="answer('q6',this,false)">"이 단어가 중요한 개념인가?"</button> </div> <div class="q-fb" id="q6-fb"></div> </div> <div class="quiz-card" id="q7"> <div class="q-num">Q7 · 어텐션</div> <div class="q-text">할루시네이션(Hallucination)이 발생하는 근본 원인은 무엇인가요?</div> <div class="q-opts"> <button class="q-opt" onclick="answer('q7',this,false)">AI가 고의로 거짓 정보를 만들기 때문</button> <button class="q-opt" onclick="answer('q7',this,false)">AI의 인터넷 연결이 끊겼기 때문</button> <button class="q-opt" onclick="answer('q7',this,true)">집중할 근거가 부족한 상태에서 그럴듯하게 채우며 계산을 계속했기 때문</button> <button class="q-opt" onclick="answer('q7',this,false)">질문이 너무 길었기 때문</button> </div> <div class="q-fb" id="q7-fb"></div> </div> <div class="quiz-card" id="q8"> <div class="q-num">Q8 · 종합</div> <div class="q-text">AI를 잘 쓰는 사람이 실제로 하는 일은 무엇인가요?</div> <div class="q-opts"> <button class="q-opt" onclick="answer('q8',this,false)">AI에게 친절하게 말 걸기</button> <button class="q-opt" onclick="answer('q8',this,false)">영어로만 질문하기</button> <button class="q-opt" onclick="answer('q8',this,true)">AI가 집중할 대상을 명확히 지정해 어텐션을 잘 설계하기</button> <button class="q-opt" onclick="answer('q8',this,false)">짧은 질문만 하기</button> </div> <div class="q-fb" id="q8-fb"></div> </div> <button class="reset-btn" onclick="resetQuiz()">🔄 퀴즈 다시 풀기</button></div><!-- /panel quiz --><!-- ═══════════════════ 도우미 ═══════════════════ --><div class="panel" id="tab-helper"> <div class="card blue"> <div class="sec-tag">✍️ 프롬프트 메시지 만들기</div> <div class="sec-title">배운 원리로 좋은 질문 만들기</div> <div style="font-size:18px;font-weight:700;margin-bottom:8px;">① 주제 고르기</div> <div class="chip-group" id="g-topic"> <button class="chip" onclick="selChip('topic','토큰과 임베딩 차이',this)">토큰과 임베딩 차이</button> <button class="chip" onclick="selChip('topic','어텐션 쉬운 설명',this)">어텐션 쉬운 설명</button> <button class="chip" onclick="selChip('topic','할루시네이션 예방',this)">할루시네이션 예방</button> <button class="chip" onclick="selChip('topic','설교 프롬프트 작성',this)">설교 프롬프트 작성</button> <button class="chip" onclick="selChip('topic','의미 공간 비유 설명',this)">의미 공간 비유 설명</button> </div> <div style="font-size:18px;font-weight:700;margin-bottom:8px;">② 요청 방식 고르기</div> <div class="chip-group" id="g-style"> <button class="chip" onclick="selChip('style','초등학생도 이해할 수 있게',this)">초등학생 눈높이로</button> <button class="chip" onclick="selChip('style','목회자 관점에서',this)">목회자 관점으로</button> <button class="chip" onclick="selChip('style','3가지 핵심 포인트로',this)">3가지 포인트로</button> <button class="chip" onclick="selChip('style','비유와 예시 중심으로',this)">비유·예시 중심으로</button> </div> <button class="make-btn" onclick="makeMsg()">📝 메시지 만들기</button> <div class="msg-result-box" id="msg-result">여기에 만들어진 메시지가 나타납니다</div> <button class="copy-btn" id="msg-copy-btn" onclick="copyMsg()">📋 복사해서 ChatGPT / Claude에 붙여넣기</button> </div> <div class="card"> <div class="sec-tag">🎯 실습 예시 — 좋은 질문과 나쁜 질문</div> <div class="sec-title">설교 준비 질문 비교</div> <div class="ba-row"> <div class="ba-box before"> <div class="ba-label">❌ BEFORE</div> '설교 준비 도와줘' </div> <div class="ba-box after"> <div class="ba-label">✅ AFTER</div> '주일 오전 예배 설교 중입니다. 본문: 빌립보서 4:6-7. 청중: 30-40대 직장인. 목표: 직장 스트레스 해소. 필요한 것: 현대적 예화 3가지, 각 2-3문장으로.' </div> </div> <div style="margin-top:12px;font-size:17px;color:var(--text-sub);"> 💡 팁: 차이가 놀랍게 느껴지면 성공입니다! 차이가 별로 없으면 질문을 더 구체화해보세요. </div> </div> <div class="card"> <div class="sec-tag">📋 맥락 추가 4가지 방법</div> <div class="sec-title">공식: [핵심 단어] + 아래 4가지 중 선택</div> <ul class="point-list"> <li class="point-item"><div class="pdot" style="background:#EFF6FF;color:#1D4ED8;">👥</div><span><b>누구를 위한?</b> — '30대 직장인을 위한', '주일학교 교사를 위한', '초등학생을 위한'</span></li> <li class="point-item"><div class="pdot" style="background:#EFF6FF;color:#1D4ED8;">🔭</div><span><b>어떤 관점?</b> — '목회적 관점', '신학적 관점', '역사적 관점'</span></li> <li class="point-item"><div class="pdot" style="background:#EFF6FF;color:#1D4ED8;">🔗</div><span><b>무엇과 연결?</b> — '현대 사회와 연결', '구약과 연결', '성도의 일상과 연결'</span></li> <li class="point-item"><div class="pdot" style="background:#EFF6FF;color:#1D4ED8;">📝</div><span><b>어떤 형식?</b> — '3가지 포인트로', '질문-답변 형식으로', '예화-적용 순서로'</span></li> </ul> </div></div><!-- /panel helper --></div><!-- /panels --><div class="toast" id="toast"></div>
+<meta property="og:url" content="https://easyai7.github.io/ai2/">
+<meta property="og:locale" content="ko_KR">
+<style>
+:root {
+  --bg: #fafaf8;
+  --card: #ffffff;
+  --text: #111111;
+  --text-sub: #444444;
+  --orange: #e06000;
+  --orange-bg: #fff3e8;
+  --orange-border: #f4a450;
+  --green: #0a6e2a;
+  --green-bg: #e8f5ec;
+  --red: #b50000;
+  --red-bg: #ffeaea;
+  --blue: #1045a0;
+  --blue-bg: #eaf0ff;
+  --border: #dddddd;
+  --playing: #e06000;
+  --shadow: 0 2px 8px rgba(0,0,0,0.10);
+}
+
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color: rgba(224,96,0,0.15); }
+
+body {
+  font-family: 'Apple SD Gothic Neo', 'Malgun Gothic', '맑은 고딕', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 20px;
+  line-height: 1.7;
+  padding-bottom: 6rem;
+}
+
+/* ── 상단 헤더 ── */
+.hero {
+  background: linear-gradient(135deg, #1a1200 0%, #3a2800 100%);
+  color: #fff;
+  padding: 2rem 1.2rem 1.5rem;
+  text-align: center;
+}
+.hero-label {
+  font-size: 15px;
+  color: #f4a450;
+  letter-spacing: 0.08em;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+}
+.hero h1 {
+  font-size: 30px;
+  font-weight: 900;
+  line-height: 1.3;
+  color: #fff;
+  margin-bottom: 0.4rem;
+}
+.hero h1 span { color: #f4a450; }
+.hero-sub {
+  font-size: 17px;
+  color: #c8b090;
+  margin-bottom: 1rem;
+}
+
+/* TTS 전역 컨트롤 */
+.tts-global {
+  background: #fff8f0;
+  border: 2px solid var(--orange-border);
+  border-radius: 14px;
+  padding: 0.9rem 1rem;
+  margin: 1rem 1.2rem 0;
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  flex-wrap: wrap;
+}
+.tts-global-label {
+  font-size: 16px;
+  color: var(--orange);
+  font-weight: 700;
+  flex-shrink: 0;
+}
+.speed-btns {
+  display: flex;
+  gap: 0.4rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.speed-btn {
+  background: var(--orange-bg);
+  border: 2px solid var(--orange-border);
+  border-radius: 8px;
+  padding: 0.35rem 0.75rem;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--orange);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.speed-btn.active { background: var(--orange); color: #fff; border-color: var(--orange); }
+.stop-btn {
+  margin-left: auto;
+  background: #fee;
+  border: 2px solid #ffaaaa;
+  border-radius: 8px;
+  padding: 0.35rem 1rem;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--red);
+  cursor: pointer;
+}
+.stop-btn:active { background: var(--red); color: #fff; }
+.now-playing {
+  width: 100%;
+  font-size: 14px;
+  color: var(--orange);
+  font-weight: 600;
+  display: none;
+  align-items: center;
+  gap: 0.4rem;
+  margin-top: 0.3rem;
+}
+.now-playing.show { display: flex; }
+.pulse {
+  width: 10px; height: 10px;
+  background: var(--orange);
+  border-radius: 50%;
+  animation: pulse 0.7s infinite alternate;
+}
+@keyframes pulse { from { opacity: 1; transform: scale(1); } to { opacity: 0.3; transform: scale(0.6); } }
+
+/* ── 탭 네비게이션 ── */
+.tab-nav {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: #fff;
+  border-bottom: 3px solid var(--orange-border);
+  display: flex;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+}
+.tab-nav::-webkit-scrollbar { display: none; }
+.tab-btn {
+  flex-shrink: 0;
+  padding: 1rem 1.1rem;
+  font-size: 17px;
+  font-weight: 700;
+  color: #888;
+  background: none;
+  border: none;
+  border-bottom: 4px solid transparent;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s;
+}
+.tab-btn.active {
+  color: var(--orange);
+  border-bottom-color: var(--orange);
+  background: #fff8f0;
+}
+
+/* ── 패널 ── */
+.panels { padding: 1rem 1rem 2rem; }
+.panel { display: none; }
+.panel.active { display: block; animation: fadeUp 0.25s ease; }
+@keyframes fadeUp { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+/* 섹션 타이틀 */
+.sec-title {
+  font-size: 26px;
+  font-weight: 900;
+  color: var(--text);
+  margin: 0.8rem 0 1rem;
+  line-height: 1.3;
+}
+.sec-tag {
+  display: inline-block;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--orange);
+  margin-bottom: 0.3rem;
+}
+
+/* ── 복습 카드 ── */
+.review-card {
+  background: var(--card);
+  border: 2px solid var(--border);
+  border-radius: 16px;
+  padding: 1.2rem 1.2rem 1rem;
+  margin-bottom: 1.2rem;
+  box-shadow: var(--shadow);
+}
+.review-card.orange { border-left: 6px solid var(--orange); }
+.review-card.red { border-left: 6px solid var(--red); }
+.review-card.green { border-left: 6px solid var(--green); }
+.review-card.blue { border-left: 6px solid var(--blue); }
+
+.card-title {
+  font-size: 22px;
+  font-weight: 900;
+  color: var(--text);
+  margin-bottom: 0.5rem;
+  line-height: 1.35;
+}
+.card-summary {
+  font-size: 19px;
+  color: var(--text-sub);
+  line-height: 1.7;
+  margin-bottom: 0.9rem;
+}
+.card-summary strong { color: var(--text); font-weight: 800; }
+.card-summary .hl-orange { color: var(--orange); font-weight: 800; }
+.card-summary .hl-red { color: var(--red); font-weight: 800; }
+.card-summary .hl-green { color: var(--green); font-weight: 800; }
+
+/* TTS 버튼 */
+.tts-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  width: 100%;
+  min-height: 60px;
+  background: var(--orange-bg);
+  border: 2px solid var(--orange-border);
+  border-radius: 12px;
+  font-size: 19px;
+  font-weight: 800;
+  color: var(--orange);
+  cursor: pointer;
+  transition: all 0.15s;
+  letter-spacing: 0.02em;
+}
+.tts-btn:active, .tts-btn.playing {
+  background: var(--orange);
+  color: #fff;
+  border-color: var(--orange);
+  transform: scale(0.98);
+}
+.tts-btn .icon { font-size: 22px; }
+.tts-btn.playing .icon { animation: wiggle 0.4s infinite alternate; }
+@keyframes wiggle { from { transform: scale(1); } to { transform: scale(1.25); } }
+
+/* 기법 카드 */
+.tech-num {
+  display: inline-block;
+  background: var(--orange);
+  color: #fff;
+  font-size: 16px;
+  font-weight: 900;
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  text-align: center;
+  line-height: 36px;
+  margin-right: 0.5rem;
+  flex-shrink: 0;
+}
+.tech-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 0.4rem;
+}
+.tech-name { font-size: 21px; font-weight: 900; color: var(--text); }
+.tech-sub { font-size: 15px; color: #888; margin-left: 0.2rem; }
+.group-title {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--orange);
+  border-bottom: 2px solid var(--orange-border);
+  padding-bottom: 0.4rem;
+  margin: 1.2rem 0 0.8rem;
+  letter-spacing: 0.04em;
+}
+
+/* 위험도 태그 */
+.risk-tag {
+  display: inline-block;
+  font-size: 14px;
+  font-weight: 800;
+  padding: 0.2rem 0.6rem;
+  border-radius: 6px;
+  margin-left: 0.5rem;
+}
+.risk-high { background: var(--red-bg); color: var(--red); }
+.risk-mid { background: var(--orange-bg); color: var(--orange); }
+.risk-low { background: var(--green-bg); color: var(--green); }
+
+.risk-row {
+  display: flex;
+  align-items: center;
+  padding: 0.65rem 0;
+  border-bottom: 1px solid #eee;
+  font-size: 18px;
+  color: var(--text-sub);
+}
+.risk-row:last-child { border-bottom: none; }
+.risk-row span:first-child { flex: 1; font-weight: 600; }
+
+/* 단계 박스 */
+.step-box {
+  border-left: 5px solid var(--blue);
+  background: var(--blue-bg);
+  border-radius: 0 12px 12px 0;
+  padding: 0.9rem 1rem;
+  margin-bottom: 0.8rem;
+}
+.step-box.s1 { border-color: var(--blue); background: var(--blue-bg); }
+.step-box.s2 { border-color: var(--green); background: var(--green-bg); }
+.step-box.s3 { border-color: var(--orange); background: var(--orange-bg); }
+.step-box.s4 { border-color: var(--red); background: var(--red-bg); }
+.step-num-tag {
+  font-size: 14px;
+  font-weight: 800;
+  margin-bottom: 0.2rem;
+}
+.s1 .step-num-tag { color: var(--blue); }
+.s2 .step-num-tag { color: var(--green); }
+.s3 .step-num-tag { color: var(--orange); }
+.s4 .step-num-tag { color: var(--red); }
+.step-title { font-size: 20px; font-weight: 900; margin-bottom: 0.2rem; }
+.step-desc { font-size: 17px; color: var(--text-sub); line-height: 1.6; }
+
+/* 퀴즈 */
+.quiz-card {
+  background: var(--card);
+  border: 2px solid var(--border);
+  border-radius: 16px;
+  padding: 1.2rem;
+  margin-bottom: 1.2rem;
+  box-shadow: var(--shadow);
+}
+.quiz-q {
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--text);
+  margin-bottom: 1rem;
+  line-height: 1.5;
+}
+.quiz-q::before {
+  content: 'Q ';
+  color: var(--orange);
+  font-size: 22px;
+}
+.quiz-opts { display: flex; flex-direction: column; gap: 0.6rem; }
+.quiz-opt {
+  background: #f8f8f8;
+  border: 2px solid var(--border);
+  border-radius: 10px;
+  padding: 0.85rem 1rem;
+  font-size: 18px;
+  color: var(--text-sub);
+  cursor: pointer;
+  text-align: left;
+  line-height: 1.5;
+  font-weight: 600;
+  transition: all 0.15s;
+  min-height: 56px;
+}
+.quiz-opt:active { transform: scale(0.98); }
+.quiz-opt.correct { border-color: var(--green); background: var(--green-bg); color: var(--green); }
+.quiz-opt.wrong { border-color: var(--red); background: var(--red-bg); color: var(--red); }
+.quiz-result {
+  margin-top: 0.7rem;
+  font-size: 19px;
+  font-weight: 800;
+  min-height: 1.5rem;
+  text-align: center;
+}
+.quiz-result.ok { color: var(--green); }
+.quiz-result.ng { color: var(--red); }
+
+/* 핵심 강조 박스 */
+.highlight-box {
+  background: linear-gradient(135deg, #fff8ee 0%, #fff3e0 100%);
+  border: 2px solid var(--orange-border);
+  border-radius: 14px;
+  padding: 1.2rem;
+  margin: 0.8rem 0 1.2rem;
+  font-size: 19px;
+  line-height: 1.7;
+  color: var(--text);
+}
+.highlight-box strong { color: var(--orange); font-size: 21px; }
+
+/* 프롬프트 박스 */
+.prompt-box {
+  background: #f0fff4;
+  border: 2px solid #80c896;
+  border-radius: 10px;
+  padding: 0.9rem 1rem;
+  margin: 0.6rem 0;
+  font-size: 18px;
+  color: var(--green);
+  font-weight: 700;
+  line-height: 1.6;
+}
+
+/* 플로팅 재생중 표시줄 */
+.floating-player {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  background: var(--orange);
+  color: #fff;
+  padding: 0.8rem 1.2rem;
+  display: none;
+  align-items: center;
+  gap: 0.8rem;
+  z-index: 200;
+  box-shadow: 0 -4px 16px rgba(224,96,0,0.3);
+}
+.floating-player.show { display: flex; }
+.floating-player .fp-text { flex: 1; font-size: 17px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.floating-player .fp-stop {
+  background: rgba(255,255,255,0.25);
+  border: none;
+  color: #fff;
+  border-radius: 8px;
+  padding: 0.4rem 0.9rem;
+  font-size: 16px;
+  font-weight: 800;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+@media (min-width: 600px) {
+  .panels { max-width: 640px; margin: 0 auto; }
+  .tts-global { max-width: 640px; margin-left: auto; margin-right: auto; }
+}
+</style>
+</head>
+<body>
+
+<!-- WebView TTS 활성화용 시작 팝업 -->
+<div id="start-overlay" style="position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.85); z-index:9999; display:flex; align-items:center; justify-content:center;">
+  <div style="background:#fff; border-radius:20px; padding:2rem 1.5rem; max-width:320px; width:90%; text-align:center;">
+    <div style="font-size:48px; margin-bottom:0.8rem;">🤖</div>
+    <div style="font-size:20px; font-weight:900; color:#1e293b; margin-bottom:0.6rem;">AI 할루시네이션 강의</div>
+    <div style="font-size:15px; color:#64748b; margin-bottom:1.5rem; line-height:1.7;">
+      음성 강의 복습 앱입니다.<br>아래 버튼을 눌러 시작하세요.
+    </div>
+    <button onclick="startApp()" style="background:#f59e0b; color:#1a1200; border:none; border-radius:12px; padding:1rem 2rem; font-size:18px; font-weight:900; cursor:pointer; width:100%;">
+      ▶ 시작하기
+    </button>
+  </div>
+</div>
+
+<!-- PWA 설치 안내 배너 (Android Chrome) -->
+<div id="install-banner" style="display:none; position:fixed; bottom:0; left:0; right:0; background:#1e293b; color:#fff; padding:0.9rem 1.2rem; z-index:999; align-items:center; gap:0.8rem; box-shadow:0 -4px 16px rgba(0,0,0,0.3);">
+  <div style="flex:1; font-size:15px; font-weight:800;">📲 홈 화면에 추가하면 앱처럼 바로 열립니다!</div>
+  <button onclick="installApp()" style="background:#f59e0b;color:#1a1200;border:none;border-radius:8px;padding:0.5rem 1rem;font-size:14px;font-weight:800;cursor:pointer;flex-shrink:0;">추가</button>
+  <button onclick="this.parentElement.style.display='none'" style="background:none;border:none;font-size:20px;cursor:pointer;flex-shrink:0;color:#fff;">✕</button>
+</div>
+
+<!-- PWA 설치 안내 배너 (iOS Safari) -->
+<div id="ios-banner" style="display:none; position:fixed; bottom:0; left:0; right:0; background:#1e293b; color:#fff; padding:0.9rem 1.2rem; z-index:999; box-shadow:0 -4px 16px rgba(0,0,0,0.3);">
+  <div style="font-size:15px; font-weight:800; margin-bottom:0.4rem;">📲 홈 화면에 추가하는 방법</div>
+  <div style="font-size:13px; line-height:1.7;">① 하단 <strong>□↑ 공유 버튼</strong> 탭<br>② <strong>「홈 화면에 추가」</strong> 선택</div>
+  <button onclick="document.getElementById('ios-banner').style.display='none'" style="position:absolute;top:0.7rem;right:0.9rem;background:none;border:none;font-size:20px;cursor:pointer;color:#fff;">✕</button>
+</div>
+
+<!-- 헤더 -->
+<div class="hero">
+  <div style="font-size:22px; font-weight:900; color:#f4a450; margin-bottom:0.6rem; letter-spacing:0.04em;">✍️ 전승대 선교사 제작</div>
+  <div class="hero-label">🎓 AI 리터러시 심화 강의 복습</div>
+  <h1>AI <span>할루시네이션</span><br>완전 정복</h1>
+  <div class="hero-sub">🔊 버튼을 누르면 강사 설명을 읽어드립니다</div>
+</div>
+
+<!-- 안드로이드 한국어 TTS 설치 안내 배너 -->
+<div id="ko-voice-banner" style="display:none; background:#fef3c7; border:2px solid #f59e0b; border-radius:12px; margin:0.8rem 1rem; padding:1rem 1.1rem; font-size:15px; color:#78350f; line-height:1.8;">
+  ⚠️ <strong style="font-size:16px;">🔇 소리가 안 들리시나요?</strong><br>
+  한국어 음성이 설치되어 있지 않습니다.<br>
+  아래 방법으로 설치해 주세요.<br><br>
+
+  <strong>📱 삼성 갤럭시:</strong><br>
+  설정 → 일반 관리 → 언어 및 입력<br>
+  → 텍스트 음성 변환 → 한국어 설치<br><br>
+
+  <strong>📱 그 외 안드로이드:</strong><br>
+  설정 → 접근성 → 텍스트 음성 변환<br>
+  → Google TTS → 한국어 설치<br><br>
+
+  <strong>✅ 가장 간단한 방법:</strong><br>
+  구글 플레이스토어에서<br>
+  <strong>「Google 텍스트 음성 변환」</strong> 검색 후 업데이트<br><br>
+
+  <button onclick="document.getElementById('ko-voice-banner').style.display='none'"
+    style="background:#f59e0b;color:#fff;border:none;border-radius:8px;padding:0.5rem 1.2rem;font-size:15px;font-weight:800;cursor:pointer;width:100%;">
+    확인 (닫기)
+  </button>
+</div>
+
+<!-- TTS 전역 컨트롤 -->
+<div class="tts-global">
+  <span class="tts-global-label">🔊 읽기 속도</span>
+  <div class="speed-btns">
+    <button class="speed-btn" onclick="setSpeed(0.7)">느리게</button>
+    <button class="speed-btn active" onclick="setSpeed(1.0)">보통</button>
+    <button class="speed-btn" onclick="setSpeed(1.3)">빠르게</button>
+  </div>
+  <button class="stop-btn" onclick="stopTTS()">⏹ 멈추기</button>
+  <button class="stop-btn" onclick="runDiag()" style="background:#6366f1;border-color:#6366f1;color:#fff;">🔍 진단</button>
+  <div class="now-playing" id="nowPlaying">
+    <div class="pulse"></div>
+    <span id="nowPlayingText">읽는 중...</span>
+  </div>
+</div>
+
+<!-- 탭 -->
+<nav class="tab-nav">
+  <button class="tab-btn active" data-tab="intro">🧠 개요</button>
+  <button class="tab-btn" data-tab="rlhf">⚙️ RLHF</button>
+  <button class="tab-btn" data-tab="layers">🔬 3층위</button>
+  <button class="tab-btn" data-tab="cause">🔩 원인</button>
+  <button class="tab-btn" data-tab="detect">🎯 감지12</button>
+  <button class="tab-btn" data-tab="fix">🛠 해결</button>
+  <button class="tab-btn" data-tab="risk">⚠️ 위험도</button>
+  <button class="tab-btn" data-tab="literacy">📐 리터러시</button>
+  <button class="tab-btn" data-tab="quiz">✏️ 퀴즈</button>
+</nav>
+
+<!-- 탭 스크롤 안내 -->
+<div id="tabHint" style="background:#fff8ee;border-bottom:2px solid #f4a450;padding:0.65rem 1rem;display:flex;align-items:center;justify-content:center;gap:0.5rem;font-size:18px;font-weight:800;color:#e06000;">
+  <span style="animation:arrowB 0.8s infinite alternate;display:inline-block;">👉</span>
+  &nbsp;메뉴를 옆으로 밀면 더 있습니다!&nbsp;
+  <span style="animation:arrowB 0.8s infinite alternate;display:inline-block;">👉</span>
+</div>
+<style>@keyframes arrowB{from{transform:translateX(0)}to{transform:translateX(6px)}}</style>
+
+<div class="panels">
+
+<!-- ══════════════ 개요 ══════════════ -->
+<div class="panel active" id="tab-intro">
+  <div class="sec-tag">PART 0 · 강의 개요</div>
+  <div class="sec-title">이 강의는 무엇이 다른가?</div>
+
+  <div class="review-card orange">
+    <div class="card-title">🎯 강의 수준 설정</div>
+    <div class="card-summary">
+      단순히 "AI가 틀릴 수 있다"가 아닙니다.<br>
+      <strong>왜 틀리는지</strong> — LLM 내부 구조부터,<br>
+      <strong>어떻게 잡는지</strong> — 12가지 실전 기법까지
+    </div>
+    <button class="tts-btn" onclick="speak(this, '이 강의는 일반 AI 강의와 다릅니다. 보통 강의는 출처를 확인하세요, 중요한 내용은 검증하세요 정도에서 끝납니다. 이 강의는 한 단계 더 들어갑니다. AI가 왜 틀리는지를 구조적으로 이해하면, 어떤 상황에서 특히 조심해야 하는지 스스로 판단할 수 있게 됩니다. 구조를 아는 사람이 더 잘 쓰고 덜 속습니다.')">
+      <span class="icon">🔊</span> 강사 설명 듣기
+    </button>
+  </div>
+
+  <div class="review-card orange">
+    <div class="card-title">💡 할루시네이션이란?</div>
+    <div class="card-summary">
+      AI가 <strong>없는 정보를 있는 것처럼</strong> 만들어내는 현상<br>
+      인간 환각과 구조가 같다 — 본인도 틀린 줄 모름
+    </div>
+    <button class="tts-btn" onclick="speak(this, '핵심 포인트입니다. 할루시네이션은 AI의 버그가 아니라 설계 특성입니다. LLM은 다음 단어를 확률적으로 예측합니다. 그 예측이 강점이지만, 동시에 할루시네이션의 원인입니다. 버그라면 고치면 되지만, 설계 특성이라면 관리해야 합니다.')">
+      <span class="icon">🔊</span> 강사 설명 듣기
+    </button>
+  </div>
+
+  <div class="highlight-box">
+    <strong>핵심 한 문장</strong><br>
+    할루시네이션은 버그가 아니라 설계 특성 — 없애는 게 아니라 <strong>관리</strong>하는 것이 목표
+  </div>
+</div>
+
+<!-- ══════════════ RLHF ══════════════ -->
+<div class="panel" id="tab-rlhf">
+  <div class="sec-tag">PART 1 · 핵심 배경지식</div>
+  <div class="sec-title">RLHF란 무엇인가?</div>
+
+  <div class="review-card orange">
+    <div class="card-title">📖 RLHF = 인간 피드백 강화학습</div>
+    <div class="card-summary">
+      사람이 AI 답변을 평가 → 그 평가로 AI를 다시 훈련<br>
+      GPT, Claude, Gemini 모두 이 과정을 거침
+    </div>
+    <button class="tts-btn" onclick="speak(this, 'RLHF는 인간 피드백 강화학습입니다. 사람이 AI 답변을 평가하고, 그 평가로 모델을 다시 학습시킵니다. RLHF는 사전학습 후 미세조정 단계에서 사용됩니다. AI를 처음 만드는 방법이 아니라, 완성된 AI를 사람에게 맞게 다듬는 방법입니다. GPT, Claude, Gemini 모두 이 과정을 거칩니다.')">
+      <span class="icon">🔊</span> 강사 설명 듣기
+    </button>
+  </div>
+
+  <div class="review-card red">
+    <div class="card-title">⚠️ RLHF의 역설 — 핵심!</div>
+    <div class="card-summary">
+      인간 평가자는 <strong class="hl-orange">자신감 있는 답변</strong>에 높은 점수를 줌<br>
+      → AI가 <strong class="hl-red">"모른다" 대신 그럴듯하게 말하는 법</strong>을 배움<br>
+      → 이게 할루시네이션의 큰 원인
+    </div>
+    <button class="tts-btn" onclick="speak(this, 'RLHF가 할루시네이션의 원인이 되는 이유입니다. 인간 평가자는 자신감 있는 답변에 높은 점수를 줍니다. AI는 모른다고 말하는 것보다 그럴듯하게 말하는 것을 더 잘 배웁니다. RLHF가 AI를 유창하게 만드는 동시에 자신있게 틀리게 만드는 역설입니다. 학습 과정 자체에 내재된 구조적 문제입니다.')">
+      <span class="icon">🔊</span> 강사 설명 듣기
+    </button>
+  </div>
+
+  <div class="highlight-box">
+    <strong>기억하세요</strong><br>
+    AI가 자신있게 말한다고 해서 사실이 아닙니다.<br>
+    자신감은 훈련의 결과입니다.
+  </div>
+</div>
+
+<!-- ══════════════ 3층위 ══════════════ -->
+<div class="panel" id="tab-layers">
+  <div class="sec-tag">PART 2 · 심화 분류</div>
+  <div class="sec-title">할루시네이션 3가지 층위</div>
+
+  <div class="review-card green">
+    <div class="card-title">1층 🟢 사실 오류형</div>
+    <div class="card-summary">
+      <strong>없는 논문, 없는 사람, 없는 통계</strong>를 만들어냄<br>
+      발견이 비교적 쉬움 — DOI 검색하면 바로 드러남
+    </div>
+    <button class="tts-btn" onclick="speak(this, '1층은 Factual Hallucination 사실 오류형입니다. 2023년 하버드 연구에 따르면 같은 형식으로 존재하지 않는 논문을 생성하는 게 전형적입니다. 이 유형은 그나마 발견이 쉽습니다. DOI를 확인하거나, 저자를 검색하면 바로 드러납니다. 문제는 2층과 3층입니다.')">
+      <span class="icon">🔊</span> 강사 설명 듣기
+    </button>
+  </div>
+
+  <div class="review-card orange">
+    <div class="card-title">2층 🟡 추론 오류형 — 더 위험</div>
+    <div class="card-summary">
+      <strong>개별 사실은 맞는데 논리 연결이 틀림</strong><br>
+      "A도 사실, B도 사실 → 그러므로 C" → C가 틀림<br>
+      의학·법률·금융에서 특히 위험
+    </div>
+    <button class="tts-btn" onclick="speak(this, '2층은 추론 오류형으로 진짜 위험한 유형입니다. 각 문장은 사실인데 논리 연결이 틀립니다. 예를 들어 이 약은 A 성분을 포함하고, B 질환에 A 성분이 도움이 된다는 연구가 있습니다. 따라서 이 약은 B 질환에 효과적입니다. 앞 두 문장은 사실이지만 결론은 틀릴 수 있습니다. 의학, 법률, 금융에서 특히 치명적입니다.')">
+      <span class="icon">🔊</span> 강사 설명 듣기
+    </button>
+  </div>
+
+  <div class="review-card red">
+    <div class="card-title">3층 🔴 맥락 오류형 — 가장 교묘</div>
+    <div class="card-summary">
+      <strong>사실 자체는 맞는데 내 상황에 맞지 않게 적용</strong><br>
+      예: PC에선 되는데 아이폰에선 안 되는 앱<br>
+      검증해도 맞으니까 잡기가 제일 어려움
+    </div>
+    <button class="tts-btn" onclick="speak(this, '3층은 맥락 오류형입니다. 오늘 수업의 직접 사례입니다. 발음 체크 앱이 PC에서는 됐지만 아이폰에서는 안 됐습니다. 된다는 사실이지만 아이폰 맥락에서는 거짓이었습니다. 사실을 검증해도 맞으니 잡기가 가장 어렵습니다. 반드시 내 상황에서도 맞는가를 따로 확인하세요.')">
+      <span class="icon">🔊</span> 강사 설명 듣기
+    </button>
+  </div>
+</div>
+
+<!-- ══════════════ 원인 ══════════════ -->
+<div class="panel" id="tab-cause">
+  <div class="sec-tag">PART 3 · 내부 구조</div>
+  <div class="sec-title">왜 AI가 틀리는가?</div>
+
+  <div class="review-card orange">
+    <div class="card-title">🔩 원인 1 — Attention 한계</div>
+    <div class="card-summary">
+      긴 글 분석 시 <strong>중간 부분을 놓치는</strong> 현상<br>
+      "Lost in the Middle" — 앞·뒤는 잘 처리, 중간은 소실
+    </div>
+    <button class="tts-btn" onclick="speak(this, '첫 번째 원인은 Attention 메커니즘의 한계입니다. 긴 텍스트에서는 Attention이 분산되어 중간 부분에서 할루시네이션이 증가합니다. 이를 Lost in the Middle, 중간 맥락 소실 현상이라 합니다. 실용 팁입니다. 중요한 정보는 프롬프트의 처음이나 끝에 넣으세요. 중간에 묻히면 AI가 놓칠 확률이 높습니다.')">
+      <span class="icon">🔊</span> 강사 설명 듣기
+    </button>
+  </div>
+
+  <div class="review-card blue">
+    <div class="card-title">🔩 원인 2 — 학습 데이터 편향</div>
+    <div class="card-summary">
+      인터넷의 틀린 정보가 반복되면 AI가 사실로 학습<br>
+      <strong>한국어 데이터 &lt;&lt; 영어 데이터</strong> → 한/영 답변이 다를 수 있음
+    </div>
+    <button class="tts-btn" onclick="speak(this, '두 번째 원인은 학습 데이터 편향입니다. 한국어 데이터는 영어보다 훨씬 적습니다. 한국어로 자신 있게 말했던 내용이 영어로 물으면 불확실하다고 하는 경우가 많습니다. 이게 기법 5번 언어 전환 검증법의 근거입니다. 한국 통계와 국내 법령은 영어로 교차 검증하세요.')">
+      <span class="icon">🔊</span> 강사 설명 듣기
+    </button>
+  </div>
+
+  <div class="review-card red">
+    <div class="card-title">🔩 원인 3 — RLHF의 역설</div>
+    <div class="card-summary">
+      AI가 나쁜 의도로 거짓말하는 게 아님<br>
+      <strong>더 도움이 되려다가, 더 유창하게 말하려다가</strong> 생기는 현상
+    </div>
+    <button class="tts-btn" onclick="speak(this, '세 번째 원인은 RLHF의 역설입니다. 할루시네이션은 AI가 나쁜 의도로 거짓말하는 게 아닙니다. 더 유창하게 말하려다 생기는 현상입니다. 모른다고 말하는 것보다 그럴듯한 답을 만드는 것이 학습에서 더 높은 보상을 받았습니다. AI를 비난하지 말고 구조를 이해하세요.')">
+      <span class="icon">🔊</span> 강사 설명 듣기
+    </button>
+  </div>
+</div>
+
+<!-- ══════════════ 감지 12 ══════════════ -->
+<div class="panel" id="tab-detect">
+  <div class="sec-tag">PART 4 · 고급 감지 기술</div>
+  <div class="sec-title">할루시네이션 감지 12가지 기법</div>
+
+  <div class="highlight-box">
+    <strong>3그룹으로 나뉩니다</strong><br>
+    A. 질문 방식으로 감지 (1~4번)<br>
+    B. 언어 & 신뢰도 검증 (5~7번)<br>
+    C. AI 메타인지 활용 (8~12번)
+  </div>
+
+  <div class="group-title">A. 질문 방식으로 감지 (기법 1~4)</div>
+
+  <div class="review-card orange">
+    <div class="tech-header">
+      <span class="tech-num">1</span>
+      <div>
+        <div class="tech-name">역방향 질문법</div>
+        <div class="tech-sub">AI 답변 내용으로 거꾸로 물어보기</div>
+      </div>
+    </div>
+    <div class="card-summary">
+      AI가 "김 박사 2019년 논문"이라고 했다면<br>
+      → "김 박사가 쓴 다른 논문은?" 이렇게 역으로 물어봄<br>
+      <strong class="hl-red">할루시네이션이면 매번 다른 답이 나옴</strong>
+    </div>
+    <button class="tts-btn" onclick="speak(this, '기법 1번은 역방향 질문법입니다. AI가 답변한 내용으로 거꾸로 물어봅니다. AI가 김철수 박사의 2019년 논문이라 했다면, 김철수 박사의 다른 논문은 뭐가 있냐고 역으로 묻습니다. AI는 만들어낸 정보를 기억하지 못합니다. 할루시네이션이면 매번 다른 내용을 만들어냅니다. 실제 정보라면 같은 답이 나옵니다.')">
+      <span class="icon">🔊</span> 기법 설명 듣기
+    </button>
+  </div>
+
+  <div class="review-card orange">
+    <div class="tech-header">
+      <span class="tech-num">2</span>
+      <div>
+        <div class="tech-name">의도적 오류 삽입법</div>
+        <div class="tech-sub">없는 논문을 물어봐서 AI 반응 테스트</div>
+      </div>
+    </div>
+    <div class="card-summary">
+      존재하지 않는 논문 제목을 물어봄<br>
+      <strong class="hl-green">좋은 AI:</strong> "그 논문은 확인할 수 없습니다"<br>
+      <strong class="hl-red">나쁜 AI:</strong> 없는 내용을 설명하기 시작
+    </div>
+    <button class="tts-btn" onclick="speak(this, '기법 2번은 의도적 오류 삽입법입니다. 세션 시작 전에 틀린 내용을 넣어서 AI를 테스트합니다. 오류를 지적했을 때 죄송합니다, 맞습니다라고 바로 동의하는 AI는 신뢰도가 낮습니다. 반대로 그 논문은 존재하지 않습니다라고 답한다면 신뢰도가 높습니다. 세션 전에 AI 신뢰도를 미리 측정하는 방법입니다.')">
+      <span class="icon">🔊</span> 기법 설명 듣기
+    </button>
+  </div>
+
+  <div class="review-card orange">
+    <div class="tech-header">
+      <span class="tech-num">3</span>
+      <div>
+        <div class="tech-name">세부 드릴다운법</div>
+        <div class="tech-sub">점점 구체적으로 파고들기</div>
+      </div>
+    </div>
+    <div class="card-summary">
+      논문 제목 → 주요 결과 → 피험자 수 → 학술지 이름…<br>
+      <strong class="hl-red">할루시네이션이면 깊이 팔수록 오류가 늘어남</strong>
+    </div>
+    <button class="tts-btn" onclick="speak(this, '기법 3번은 세부 드릴다운법입니다. 논문 제목, 주요 결과, 피험자 수, 학술지 임팩트팩터 순으로 점점 구체적으로 파고듭니다. 할루시네이션은 겉면만 있고 내부가 없습니다. 처음엔 그럴듯하게 말하다가 세부를 파면 일관성이 무너지거나 모르겠다고 후퇴합니다. 드릴다운할수록 오류가 늘어납니다.')">
+      <span class="icon">🔊</span> 기법 설명 듣기
+    </button>
+  </div>
+
+  <div class="review-card orange">
+    <div class="tech-header">
+      <span class="tech-num">4</span>
+      <div>
+        <div class="tech-name">시간축 테스트</div>
+        <div class="tech-sub">시간 순서로 모순 찾기</div>
+      </div>
+    </div>
+    <div class="card-summary">
+      "이론 발표가 2015년" + "대학 부임이 2017년"<br>
+      → "2015년엔 어디서 연구했나요?" → <strong class="hl-red">모순 발생!</strong>
+    </div>
+    <button class="tts-btn" onclick="speak(this, '기법 4번은 시간축 테스트입니다. 시간 순서는 AI가 일관성을 유지하기 가장 어려운 영역입니다. 논문 발표, 직위 임명, 사건 발생을 시간 순으로 교차 확인합니다. 예를 들어 이 이론 발표가 2015년이고, 그 대학 부임이 2017년이라면, 2015년엔 어디서 연구했냐고 물으면 모순이 드러납니다.')">
+      <span class="icon">🔊</span> 기법 설명 듣기
+    </button>
+  </div>
+
+  <div class="group-title">B. 언어 & 신뢰도 검증 (기법 5~7)</div>
+
+  <div class="review-card blue">
+    <div class="tech-header">
+      <span class="tech-num">5</span>
+      <div>
+        <div class="tech-name">언어 전환 교차 검증법</div>
+        <div class="tech-sub">같은 질문을 영어로도 물어보기</div>
+      </div>
+    </div>
+    <div class="card-summary">
+      한국어로 물으면 자신만만하게 답변<br>
+      영어로 물으면 "I'm not sure..."<br>
+      <strong class="hl-red">→ 앞의 한국어 답변이 위험하다는 신호!</strong>
+    </div>
+    <button class="tts-btn" onclick="speak(this, '기법 5번은 언어 전환 교차 검증법입니다. 영어 데이터는 한국어보다 수십 배 많습니다. 한국어로 자신 있게 답했는데 영어로 물으면 not sure라고 하면 위험 신호입니다. 특히 국내 통계, 법령, 연구에서 효과적입니다.')">
+      <span class="icon">🔊</span> 기법 설명 듣기
+    </button>
+  </div>
+
+  <div class="review-card blue">
+    <div class="tech-header">
+      <span class="tech-num">6</span>
+      <div>
+        <div class="tech-name">AI 자기모순 유도법</div>
+        <div class="tech-sub">이전 답변과 비교해서 물어보기</div>
+      </div>
+    </div>
+    <div class="card-summary">
+      "아까 A라고 했는데 지금은 B라고 하네요. 어느 게 맞나요?"<br>
+      <strong class="hl-red">할루시네이션 AI:</strong> 둘 다 맞다고 하거나 또 다른 설명을 만들어냄
+    </div>
+    <button class="tts-btn" onclick="speak(this, '기법 6번은 AI 자기모순 유도법입니다. 이전 답변을 이용해 모순을 드러냅니다. 아까는 이렇게 말했는데 지금은 다르게 말합니다. 어느 것이 맞나요 라고 물어봅니다. 할루시네이션 AI는 일관성을 유지하지 못해서 또 새로운 설명을 만들거나 둘 다 맞다고 얼버무립니다.')">
+      <span class="icon">🔊</span> 기법 설명 듣기
+    </button>
+  </div>
+
+  <div class="review-card blue">
+    <div class="tech-header">
+      <span class="tech-num">7</span>
+      <div>
+        <div class="tech-name">신뢰 구간 요청법</div>
+        <div class="tech-sub">AI에게 확신도를 숫자로 말하게 하기</div>
+      </div>
+    </div>
+    <div class="card-summary">
+      "각 정보에 대해 0~100% 확신도를 표시해주세요"<br>
+      낮은 확신도 = <strong>반드시 검증 필요</strong><br>
+      단, 높은 확신도도 신뢰 보장 안 됨
+    </div>
+    <button class="tts-btn" onclick="speak(this, '기법 7번은 신뢰 구간 요청법입니다. 각 정보를 0부터 100퍼센트 확신도로 표시해 달라고 요청합니다. 확신도가 낮은 정보를 우선 검증합니다. 단, 한계가 있습니다. 할루시네이션을 할 때도 높은 확신도를 줄 수 있습니다. 낮은 확신도는 검증 신호이지만, 높은 확신도가 신뢰를 보장하지는 않습니다.')">
+      <span class="icon">🔊</span> 기법 설명 듣기
+    </button>
+  </div>
+
+  <div class="group-title">C. AI 메타인지 활용 (기법 8~12)</div>
+
+  <div class="review-card green">
+    <div class="tech-header">
+      <span class="tech-num">8</span>
+      <div>
+        <div class="tech-name">전문가 페르소나 프롬프팅</div>
+        <div class="tech-sub">AI에게 자기 답변을 비판하게 시키기</div>
+      </div>
+    </div>
+    <div class="card-summary">
+      "방금 답변에서 할루시네이션이 의심되는 부분을<br>
+      팩트체커 입장에서 찾아주세요"<br>
+      <strong class="hl-green">AI가 놀랍도록 솔직하게 약점을 지적함</strong>
+    </div>
+    <button class="tts-btn" onclick="speak(this, '기법 8번은 전문가 페르소나 프롬프팅입니다. AI 자신도 어느 부분이 불확실한지 알고 있습니다. 스스로 검증하는 역할을 부여하면 솔직하게 약점을 지적합니다. 예를 들어, 방금 답변에서 할루시네이션이 의심되는 부분을 팩트체커 입장에서 찾아주세요 라고 해보세요. AI에게 적대적인 역할을 주면 더 솔직해집니다.')">
+      <span class="icon">🔊</span> 기법 설명 듣기
+    </button>
+  </div>
+
+  <div class="review-card green">
+    <div class="tech-header">
+      <span class="tech-num">9</span>
+      <div>
+        <div class="tech-name">최소 재현 테스트</div>
+        <div class="tech-sub">새 창에서 3~5번 반복해서 물어보기</div>
+      </div>
+    </div>
+    <div class="card-summary">
+      새 대화창에서 같은 질문을 3~5번 반복<br>
+      <strong class="hl-green">매번 같은 답 = 학습된 사실</strong><br>
+      <strong class="hl-red">매번 다른 답 = 할루시네이션 강하게 의심</strong>
+    </div>
+    <button class="tts-btn" onclick="speak(this, '기법 9번은 최소 재현 테스트입니다. 특히 논문 제목, 날짜, 숫자에서 효과적입니다. 실제로 학습된 정보는 반복해서 물어봐도 동일하게 나옵니다. 만들어낸 정보는 매번 조금씩 달라집니다. 주의할 점이 있습니다. 같은 대화 내에서 물으면 컨텍스트가 유지되어 같은 답이 나올 수 있으니, 반드시 새 대화창을 열고 테스트해야 합니다.')">
+      <span class="icon">🔊</span> 기법 설명 듣기
+    </button>
+  </div>
+
+  <div class="review-card green">
+    <div class="tech-header">
+      <span class="tech-num">10</span>
+      <div>
+        <div class="tech-name">네거티브 스페이스 확인법</div>
+        <div class="tech-sub">AI가 말하지 않은 것에 주목</div>
+      </div>
+    </div>
+    <div class="card-summary">
+      "방금 답변의 반론이나 예외사항은 무엇인가요?"<br>
+      <strong>진짜 전문 지식엔 항상 예외가 있음</strong><br>
+      너무 깔끔한 답변이 오히려 의심스러움
+    </div>
+    <button class="tts-btn" onclick="speak(this, '기법 10번은 네거티브 스페이스 확인법입니다. 전문가라면 예외사항, 반론, 한계점을 반드시 언급합니다. AI가 어떤 주장을 할 때 반론을 전혀 언급하지 않는다면 과도하게 단순화되었거나 할루시네이션 가능성이 있습니다. 전문 지식에는 항상 경계 조건과 예외가 있습니다. AI가 지나치게 깔끔하고 완벽한 답변을 한다면 오히려 의심하세요.')">
+      <span class="icon">🔊</span> 기법 설명 듣기
+    </button>
+  </div>
+
+  <div class="review-card green">
+    <div class="tech-header">
+      <span class="tech-num">11</span>
+      <div>
+        <div class="tech-name">CrossRef DOI 검증</div>
+        <div class="tech-sub">논문 출처 즉시 확인</div>
+      </div>
+    </div>
+    <div class="card-summary">
+      AI가 제시한 DOI → crossref.org에서 확인<br>
+      <strong class="hl-red">80% 이상 가짜 DOI</strong><br>
+      논문 제목은 그럴듯하지만 실제론 존재 안 함
+    </div>
+    <button class="tts-btn" onclick="speak(this, '기법 11번은 CrossRef DOI 검증입니다. AI가 논문 DOI를 제시했다면 반드시 crossref.org에서 확인하세요. 2분이면 됩니다. 논문 제목과 저자는 실제 존재하는 이름들을 조합해서 그럴듯하게 만들어내고, DOI는 아예 없는 번호를 생성하는 경우가 대부분입니다. 이것이 1층 사실 오류형 할루시네이션의 전형적인 패턴입니다.')">
+      <span class="icon">🔊</span> 기법 설명 듣기
+    </button>
+  </div>
+
+  <div class="review-card green">
+    <div class="tech-header">
+      <span class="tech-num">12</span>
+      <div>
+        <div class="tech-name">경계 조건 테스트</div>
+        <div class="tech-sub">일부러 틀린 전제로 물어보기</div>
+      </div>
+    </div>
+    <div class="card-summary">
+      명백히 틀린 전제 포함 질문: "이거 2022년에 발명됐죠?"<br>
+      <strong class="hl-green">좋은 AI:</strong> "실제로는 훨씬 이전입니다"<br>
+      <strong class="hl-red">나쁜 AI:</strong> "네, 2022년 초에..."
+    </div>
+    <button class="tts-btn" onclick="speak(this, '기법 12번은 경계 조건 테스트입니다. 이 테스트로 AI의 신뢰 조정 능력을 측정합니다. 좋은 AI는 잘못된 전제를 기꺼이 교정합니다. 나쁜 AI는 잘못된 전제도 수용해서 이야기를 만들어냅니다. 기법 2번 오류 삽입법과 함께 쓰면 세션 시작 전 AI 신뢰도 측정에 매우 효과적입니다.')">
+      <span class="icon">🔊</span> 기법 설명 듣기
+    </button>
+  </div>
+</div>
+
+<!-- ══════════════ 해결 ══════════════ -->
+<div class="panel" id="tab-fix">
+  <div class="sec-tag">PART 5 · 해결 방법</div>
+  <div class="sec-title">할루시네이션 줄이는 5가지 원칙</div>
+
+  <div class="review-card orange">
+    <div class="card-title">⚡ 즉각 교정하는 법</div>
+    <div class="card-summary">
+      AI가 틀렸을 때 바로 올바른 정보를 제공하고 재답변 요청
+    </div>
+    <div class="prompt-box">"방금 말한 내용이 사실과 다릅니다. [올바른 정보]입니다. 이를 바탕으로 다시 답해주세요."</div>
+    <button class="tts-btn" onclick="speak(this, 'AI가 잘못된 정보를 제시했을 때, 즉시 올바른 정보를 제공하고 재답변을 요청하면 이후 대화의 정확도가 높아집니다. 방치하면 잘못된 맥락 위에 답변이 쌓여 오류가 증폭됩니다. 마치 건물을 지을 때 기초가 틀리면 올라갈수록 더 무너지는 것과 같습니다.')">
+      <span class="icon">🔊</span> 강사 설명 듣기
+    </button>
+  </div>
+
+  <div class="review-card blue">
+    <div class="card-title">원칙 1 — 맥락 고정</div>
+    <div class="card-summary">내가 준 자료 안에서만 답하게 제한</div>
+    <div class="prompt-box">"내가 제공하는 자료 안에서만 답하세요. 자료에 없는 내용은 '자료에 없음'이라고 표시하세요."</div>
+    <button class="tts-btn" onclick="speak(this, '원칙 1번은 맥락 고정입니다. AI가 자신의 학습 데이터를 창작하지 못하도록 경계를 설정합니다. 내가 제공하는 자료 안에서만 답하세요. 자료에 없는 내용은 자료에 없음이라고 표시하세요 라고 요청합니다. 이것은 검색 증강 생성, RAG의 수동 버전입니다.')">
+      <span class="icon">🔊</span> 강사 설명 듣기
+    </button>
+  </div>
+
+  <div class="review-card blue">
+    <div class="card-title">원칙 2 — 불확실성 강제 표현</div>
+    <div class="card-summary">모를 때 솔직히 말하도록 지시</div>
+    <div class="prompt-box">"확실하지 않은 정보는 반드시 '불확실'이라고 표시하세요. 모르면 솔직하게 모른다고 하세요."</div>
+    <button class="tts-btn" onclick="speak(this, '원칙 2번은 불확실성 강제 표현입니다. RLHF로 인해 AI는 자신감 있게 말하도록 훈련되어 있습니다. 이 원칙이 그 방어막을 제거합니다. 확실하지 않은 정보는 반드시 불확실이라고 표시하세요. 모르면 솔직하게 모른다고 하세요 라고 요청하세요.')">
+      <span class="icon">🔊</span> 강사 설명 듣기
+    </button>
+  </div>
+
+  <div class="review-card blue">
+    <div class="card-title">원칙 3 — 검증 가능 출처 요청</div>
+    <div class="card-summary">내가 직접 확인할 수 있는 출처를 같이 달아달라고 요청</div>
+    <div class="prompt-box">"각 정보마다 내가 직접 확인할 수 있는 검색어나 출처를 함께 제시하세요."</div>
+    <button class="tts-btn" onclick="speak(this, '원칙 3번은 검증 가능 출처 요청입니다. 검증 가능한 출처를 요청하면 AI도 그럴듯한 출처를 만들어내는 것에 부담을 느낍니다. 각 정보마다 내가 직접 확인할 수 있는 검색어나 출처를 함께 제시하세요 라고 요청하세요.')">
+      <span class="icon">🔊</span> 강사 설명 듣기
+    </button>
+  </div>
+
+  <div class="review-card blue">
+    <div class="card-title">원칙 4 — 단계 분해 (Chain of Thought)</div>
+    <div class="card-summary">복잡한 질문을 작은 단계로 나눠서 요청</div>
+    <div class="prompt-box">"단계별로 나눠서, 각 단계에서 근거를 함께 설명해주세요."</div>
+    <button class="tts-btn" onclick="speak(this, '원칙 4번은 단계 분해입니다. 영어로는 Chain of Thought라고 합니다. 복잡한 질문을 작은 단계로 분해하면 각 단계를 검증할 수 있습니다. 2층 추론 오류형 할루시네이션 방지에 특히 효과적입니다. 단계별로 나눠서, 각 단계에서 근거를 함께 설명해주세요 라고 요청하세요.')">
+      <span class="icon">🔊</span> 강사 설명 듣기
+    </button>
+  </div>
+
+  <div class="review-card blue">
+    <div class="card-title">원칙 5 — 조건 명시</div>
+    <div class="card-summary">내 환경·상황을 구체적으로 먼저 알려줌<br>3층 맥락 오류형 방지!</div>
+    <div class="prompt-box">"제한사항이 있다면 먼저 알려주세요." / "아이폰 iOS 환경에서도 됩니까?"</div>
+    <button class="tts-btn" onclick="speak(this, '원칙 5번은 조건 명시입니다. 3층 맥락 오류형 할루시네이션 방지 원칙입니다. 오늘 직접 경험한 아이폰 발음 앱 사례의 교훈입니다. 내 환경에서 가능한가를 명시적으로 물어야 합니다. 제한사항이 있다면 먼저 알려주세요 혹은 아이폰 iOS 환경에서도 됩니까 처럼 내 상황을 구체적으로 명시하세요.')">
+      <span class="icon">🔊</span> 강사 설명 듣기
+    </button>
+  </div>
+</div>
+
+<!-- ══════════════ 위험도 ══════════════ -->
+<div class="panel" id="tab-risk">
+  <div class="sec-tag">PART 6 · 예방 요령</div>
+  <div class="sec-title">어떤 질문이 위험한가?</div>
+
+  <div class="review-card red">
+    <div class="card-title">🔴 반드시 검증 — 고위험 질문</div>
+    <div class="card-summary">아래 유형은 AI가 틀릴 가능성이 매우 높습니다</div>
+    <div class="risk-row"><span>논문·연구 인용 요청</span><span class="risk-tag risk-high">최고위험</span></div>
+    <div class="risk-row"><span>특정 통계·수치 요청</span><span class="risk-tag risk-high">최고위험</span></div>
+    <div class="risk-row"><span>법령·조항 요청</span><span class="risk-tag risk-high">최고위험</span></div>
+    <div class="risk-row"><span>특정인 발언 인용</span><span class="risk-tag risk-high">최고위험</span></div>
+    <div class="risk-row"><span>최신 정보 요청</span><span class="risk-tag risk-mid">높음</span></div>
+    <div class="risk-row"><span>URL·링크 요청</span><span class="risk-tag risk-mid">높음</span></div>
+    <div class="risk-row"><span>기술 "가능 여부" 질문</span><span class="risk-tag risk-low">중간</span></div>
+    <button class="tts-btn" onclick="speak(this, '최고위험 유형들의 공통점은 AI가 그럴듯한 형식을 만들어낼 수 있다는 점입니다. 논문에는 제목, 저자, 연도, DOI 형식이 있고, 법령에는 조항 번호 형식이 있습니다. 형식이 완벽해 보이기 때문에 오히려 더 믿게 됩니다. 이게 가장 위험합니다.')">
+      <span class="icon">🔊</span> 강사 설명 듣기
+    </button>
+  </div>
+
+  <div class="review-card green">
+    <div class="card-title">🟢 상대적으로 안전한 질문</div>
+    <div class="card-summary">모든 AI 질문이 위험한 것은 아닙니다</div>
+    <div class="risk-row"><span>개념 설명 요청</span><span class="risk-tag risk-low">낮음</span></div>
+    <div class="risk-row"><span>글쓰기·번역 지원</span><span class="risk-tag risk-low">낮음</span></div>
+    <div class="risk-row"><span>내가 준 자료 요약</span><span class="risk-tag risk-low">낮음</span></div>
+    <div class="risk-row"><span>아이디어 브레인스토밍</span><span class="risk-tag risk-low">낮음</span></div>
+    <div class="risk-row"><span>코드 생성 (테스트 필수)</span><span class="risk-tag risk-low">낮음</span></div>
+    <button class="tts-btn" onclick="speak(this, 'AI를 무조건 의심할 필요는 없습니다. 어떤 질문에 주의해야 하는지 아는 것이 AI 리터러시입니다. 특히 내가 제공한 자료 요약은 안전합니다. 맥락 고정 원칙을 자동으로 적용하기 때문입니다. 코드 생성은 낮은 위험이지만 반드시 실제로 실행해서 테스트해야 합니다.')">
+      <span class="icon">🔊</span> 강사 설명 듣기
+    </button>
+  </div>
+
+  <div class="review-card orange">
+    <div class="card-title">🗂 상황별 추천 기법</div>
+    <div class="card-summary">어떤 상황에서 어떤 기법을 쓸까?</div>
+    <div class="risk-row"><span>📄 논문·출처</span><span style="font-size:15px;color:var(--orange);font-weight:700;">기법11 + 기법03</span></div>
+    <div class="risk-row"><span>👤 인물 정보</span><span style="font-size:15px;color:var(--orange);font-weight:700;">기법01 + 기법04</span></div>
+    <div class="risk-row"><span>📊 통계·수치</span><span style="font-size:15px;color:var(--orange);font-weight:700;">기법09 + 원본 확인</span></div>
+    <div class="risk-row"><span>💻 기술 가능 여부</span><span style="font-size:15px;color:var(--orange);font-weight:700;">기법12 + 원칙05</span></div>
+    <div class="risk-row"><span>📃 긴 답변 전체</span><span style="font-size:15px;color:var(--orange);font-weight:700;">기법08</span></div>
+    <div class="risk-row"><span>⚖️ 법령·규정</span><span style="font-size:15px;color:var(--orange);font-weight:700;">기법05 + 법제처 확인</span></div>
+    <div class="risk-row"><span>🔴 세션 시작 전</span><span style="font-size:15px;color:var(--orange);font-weight:700;">기법02로 신뢰도 측정</span></div>
+    <button class="tts-btn" onclick="speak(this, '상황별 적합한 기법입니다. 논문 출처는 11번 DOI 검증과 3번 드릴다운을 씁니다. 인물 정보는 1번 역방향 질문과 4번 시간축 테스트를 씁니다. 긴 답변은 8번 전문가 페르소나가 빠릅니다. 법령은 5번 언어 전환 후 법제처 직접 확인하세요. 세션 전에는 2번 오류 삽입으로 AI 신뢰도를 측정하세요.')">
+      <span class="icon">🔊</span> 전체 설명 듣기
+    </button>
+  </div>
+</div>
+
+<!-- ══════════════ 리터러시 ══════════════ -->
+<div class="panel" id="tab-literacy">
+  <div class="sec-tag">PART 7 · AI 리터러시</div>
+  <div class="sec-title">AI 리터러시 4단계</div>
+
+  <div class="step-box s1">
+    <div class="step-num-tag">1단계</div>
+    <div class="step-title">도구 리터러시</div>
+    <div class="step-desc">"어떻게 쓰는가" — 대부분의 사람이 여기에 머뭄</div>
+  </div>
+  <div class="step-box s2">
+    <div class="step-num-tag">2단계</div>
+    <div class="step-title">비판적 리터러시</div>
+    <div class="step-desc">"언제 믿고 언제 의심하는가" — 12가지 기법이 여기</div>
+  </div>
+  <div class="step-box s3">
+    <div class="step-num-tag">3단계 ← 오늘 강의 목표</div>
+    <div class="step-title">구조적 리터러시</div>
+    <div class="step-desc">"왜 이런 일이 생기는가" — LLM 내부 구조 이해</div>
+  </div>
+  <div class="step-box s4">
+    <div class="step-num-tag">4단계</div>
+    <div class="step-title">설계 리터러시</div>
+    <div class="step-desc">"어떻게 설계하면 줄일 수 있는가" — 개발자·기획자 수준</div>
+  </div>
+
+  <button class="tts-btn" style="margin:0.8rem 0;" onclick="speak(this, 'AI 리터러시는 4단계입니다. 1단계는 도구 리터러시, 어떻게 쓰는가입니다. 대부분의 사람이 여기 머뭅니다. 2단계는 비판적 리터러시, 언제 의심하는가입니다. 12가지 감지 기법이 여기 해당합니다. 3단계는 구조적 리터러시, 왜 이런 일이 생기는가입니다. 오늘 강의의 목표입니다. 4단계는 설계 리터러시로 개발자 기획자 수준입니다.')">
+    <span class="icon">🔊</span> 4단계 설명 듣기
+  </button>
+
+  <div class="review-card red">
+    <div class="card-title">⚠️ 역설 — AI 많이 써본 사람이 더 속는다!</div>
+    <div class="card-summary">
+      ① 익숙해질수록 검증을 건너뜀<br>
+      ② 신뢰가 쌓이면 비판적 시각이 약해짐<br>
+      ③ 모르는 분야는 판단 기준 자체가 없음
+    </div>
+    <button class="tts-btn" onclick="speak(this, '경험이 쌓일수록 오히려 위험해지는 이유가 있습니다. 첫째, 익숙해질수록 검증을 건너뜁니다. 둘째, 신뢰가 쌓이면 비판적 시각이 약해집니다. 셋째, 모르는 분야에서는 판단 기준이 없습니다. 진정한 AI 리터러시는 잘 쓰는 것 더하기 제대로 의심하는 것입니다. 능숙함이 오히려 위험할 수 있습니다.')">
+      <span class="icon">🔊</span> 강사 설명 듣기
+    </button>
+  </div>
+
+  <div class="highlight-box">
+    <strong>AI 리터러시란?</strong><br>
+    AI의 탁월성과 한계를 동시에 이해하고,<br>
+    맹신과 배척 사이에서<br>
+    <strong>오류는 최소화하고 가치는 극대화하는 능력</strong>
+  </div>
+  <button class="tts-btn" onclick="speak(this, '핵심 인사이트 세 가지입니다. 첫째, 할루시네이션은 설계 특성이라 관리가 목표입니다. 둘째, 감지는 기술이고 훈련됩니다. 12가지 기법을 습관으로 만드세요. 셋째, AI는 도구이고 판단은 인간의 몫입니다. 최종 책임은 사용한 사람에게 있습니다.')">
+    <span class="icon">🔊</span> 핵심 인사이트 3가지 듣기
+  </button>
+</div>
+
+<!-- ══════════════ 퀴즈 ══════════════ -->
+<div class="panel" id="tab-quiz">
+  <div class="sec-tag">REVIEW QUIZ</div>
+  <div class="sec-title">이해도 확인 퀴즈</div>
+
+  <div class="quiz-card">
+    <div class="quiz-q">할루시네이션은 AI의 버그라고 할 수 있는가?</div>
+    <div class="quiz-opts">
+      <button class="quiz-opt" onclick="answerQuiz(this,false)">① 맞다. 수정하면 없앨 수 있다.</button>
+      <button class="quiz-opt" onclick="answerQuiz(this,true)">② 아니다. LLM 설계 자체의 특성으로 관리가 목표다.</button>
+      <button class="quiz-opt" onclick="answerQuiz(this,false)">③ 최신 모델에서는 이미 해결되었다.</button>
+    </div>
+    <div class="quiz-result"></div>
+  </div>
+
+  <div class="quiz-card">
+    <div class="quiz-q">RLHF가 할루시네이션의 원인이 되는 이유는?</div>
+    <div class="quiz-opts">
+      <button class="quiz-opt" onclick="answerQuiz(this,false)">① 훈련 데이터가 부족하기 때문이다.</button>
+      <button class="quiz-opt" onclick="answerQuiz(this,false)">② AI가 의도적으로 거짓말을 배우기 때문이다.</button>
+      <button class="quiz-opt" onclick="answerQuiz(this,true)">③ 인간 평가자가 자신감 있는 답변에 높은 점수를 줘서 AI가 모른다고 말하기보다 유창하게 답하는 법을 배우기 때문이다.</button>
+    </div>
+    <div class="quiz-result"></div>
+  </div>
+
+  <div class="quiz-card">
+    <div class="quiz-q">3층 Contextual Hallucination의 특징은?</div>
+    <div class="quiz-opts">
+      <button class="quiz-opt" onclick="answerQuiz(this,false)">① 없는 사실을 만들어낸다.</button>
+      <button class="quiz-opt" onclick="answerQuiz(this,false)">② 논리 연결이 틀렸다.</button>
+      <button class="quiz-opt" onclick="answerQuiz(this,true)">③ 사실 자체는 맞지만 내 구체적인 상황에서는 적용이 틀렸다.</button>
+    </div>
+    <div class="quiz-result"></div>
+  </div>
+
+  <div class="quiz-card">
+    <div class="quiz-q">"Lost in the Middle" 현상은 무엇과 관련 있는가?</div>
+    <div class="quiz-opts">
+      <button class="quiz-opt" onclick="answerQuiz(this,false)">① RLHF의 역설</button>
+      <button class="quiz-opt" onclick="answerQuiz(this,true)">② Attention 메커니즘이 긴 텍스트에서 중간 부분에 집중하지 못하는 현상</button>
+      <button class="quiz-opt" onclick="answerQuiz(this,false)">③ 학습 데이터의 언어 편향</button>
+    </div>
+    <div class="quiz-result"></div>
+  </div>
+
+  <div class="quiz-card">
+    <div class="quiz-q">같은 질문을 영어로 바꿔 묻는 기법 5번의 이유는?</div>
+    <div class="quiz-opts">
+      <button class="quiz-opt" onclick="answerQuiz(this,false)">① 영어가 더 정확한 언어이기 때문이다.</button>
+      <button class="quiz-opt" onclick="answerQuiz(this,true)">② AI의 영어 학습 데이터가 한국어보다 훨씬 많아, 영어로 물으면 불확실한 내용을 더 솔직하게 드러내기 때문이다.</button>
+      <button class="quiz-opt" onclick="answerQuiz(this,false)">③ AI가 영어로만 생각하기 때문이다.</button>
+    </div>
+    <div class="quiz-result"></div>
+  </div>
+
+  <div class="quiz-card">
+    <div class="quiz-q">새 대화창에서 같은 질문을 3~5번 반복할 때 매번 다른 답이 나온다면?</div>
+    <div class="quiz-opts">
+      <button class="quiz-opt" onclick="answerQuiz(this,false)">① AI가 더 다양한 옵션을 제시하므로 도움이 된다.</button>
+      <button class="quiz-opt" onclick="answerQuiz(this,true)">② 할루시네이션을 강하게 의심해야 한다. 실제 정보는 일관되게 같은 답이 나온다.</button>
+      <button class="quiz-opt" onclick="answerQuiz(this,false)">③ AI의 창의성이 높다는 의미다.</button>
+    </div>
+    <div class="quiz-result"></div>
+  </div>
+
+  <div class="quiz-card">
+    <div class="quiz-q">"방금 답변에서 할루시네이션이 의심되는 부분을 팩트체커 입장에서 찾아주세요"는 몇 번 기법인가?</div>
+    <div class="quiz-opts">
+      <button class="quiz-opt" onclick="answerQuiz(this,false)">① 기법 6 — AI 자기모순 유도법</button>
+      <button class="quiz-opt" onclick="answerQuiz(this,true)">② 기법 8 — 전문가 페르소나 프롬프팅</button>
+      <button class="quiz-opt" onclick="answerQuiz(this,false)">③ 기법 10 — 네거티브 스페이스 확인법</button>
+    </div>
+    <div class="quiz-result"></div>
+  </div>
+
+  <div class="quiz-card">
+    <div class="quiz-q">오늘 강의의 목표로 명시된 AI 리터러시 단계는?</div>
+    <div class="quiz-opts">
+      <button class="quiz-opt" onclick="answerQuiz(this,false)">① 1단계: 도구 리터러시</button>
+      <button class="quiz-opt" onclick="answerQuiz(this,false)">② 2단계: 비판적 리터러시</button>
+      <button class="quiz-opt" onclick="answerQuiz(this,true)">③ 3단계: 구조적 리터러시 (왜 이런 일이 생기는가)</button>
+    </div>
+    <div class="quiz-result"></div>
+  </div>
+</div>
+
+</div><!-- /panels -->
+
+<!-- 플로팅 재생 표시 -->
+<div class="floating-player" id="floatingPlayer">
+  <div class="pulse"></div>
+  <div class="fp-text" id="fpText">읽는 중...</div>
+  <button class="fp-stop" onclick="stopTTS()">⏹ 멈춤</button>
+</div>
+
 <script>
+// ── 카카오톡 인앱브라우저 → 크롬 강제열기 ──
+(function() {
+  var ua = navigator.userAgent || '';
+  var isKakao = /KAKAOTALK/i.test(ua);
+  var isAndroid = /Android/i.test(ua);
+  var isIOS = /iPhone|iPad|iPod/i.test(ua);
+  if (isKakao) {
+    var url = location.href;
+    if (isAndroid) {
+      // Android: intent 스킴으로 크롬 강제실행
+      var intent = 'intent://' + url.replace(/https?:\/\//, '') +
+        '#Intent;scheme=https;package=com.android.chrome;end';
+      location.href = intent;
+    } else if (isIOS) {
+      // iOS: 사파리로 열기 유도 (크롬 직접 강제 불가)
+      var msg = document.createElement('div');
+      msg.style.cssText = 'position:fixed;top:0;left:0;width:100%;background:#e06000;color:#fff;' +
+        'text-align:center;padding:14px;font-size:16px;z-index:9999;';
+      msg.innerHTML = '⚠️ TTS 음성 기능을 사용하려면 <b>Safari</b>로 열어주세요.<br>' +
+        '<small>우측 하단 ··· 메뉴 → "기본 브라우저로 열기"</small>';
+      document.body.appendChild(msg);
+    }
+  }
+})();
+
+// ── TTS 엔진 (v3 — iOS 중단 버그 수정) ──
+let currentBtn = null;
+let currentUtterance = null;
+let ttsSpeed = 1.0;
+let resumeTimer = null;          // iOS keepalive 타이머
+// 페이지 로드 시점이 아니라 버튼 클릭 시점에 매번 체크
+// HTTPS에서 첫 터치 전까지 speechSynthesis가 없는 경우 대응
+let ttsEnabled = true; // 일단 허용, speak() 안에서 재확인
+
+// ── iOS/Android Chrome TTS 자동중단 방지 keepalive ──
+// speechSynthesis는 약 14~15초 후 자동으로 pause 상태가 됨
+// 250ms마다 speaking 상태를 확인하고 paused 시 resume() 호출
+function startKeepAlive() {
+  stopKeepAlive();
+  resumeTimer = setInterval(() => {
+    if (!speechSynthesis.speaking) return;
+    if (speechSynthesis.paused) {
+      speechSynthesis.resume();
+    }
+  }, 250);
+}
+function stopKeepAlive() {
+  if (resumeTimer) { clearInterval(resumeTimer); resumeTimer = null; }
+}
+
+function setSpeed(rate) {
+  ttsSpeed = rate;
+  document.querySelectorAll('.speed-btn').forEach(b => {
+    b.classList.remove('active');
+    if ((rate === 0.7 && b.textContent === '느리게') ||
+        (rate === 1.0 && b.textContent === '보통') ||
+        (rate === 1.3 && b.textContent === '빠르게')) {
+      b.classList.add('active');
+    }
+  });
+  if (currentUtterance && speechSynthesis.speaking) {
+    const lastBtn = currentBtn;
+    const lastText = currentUtterance.text;
+    stopTTS();
+    setTimeout(() => speak(lastBtn, lastText), 150);
+  }
+}
+
+function speak(btn, text) {
+  // 클릭 시점에 재확인 — HTTPS에서 첫 터치 전 speechSynthesis 미존재 대응
+  if (!('speechSynthesis' in window)) {
+    alert('이 기기 또는 브라우저에서는 음성이 지원되지 않습니다.\nChrome 브라우저로 열어주세요.');
+    return;
+  }
+
+  // 같은 버튼 누르면 멈추기
+  if (currentBtn === btn && speechSynthesis.speaking) {
+    stopTTS();
+    return;
+  }
+
+  stopTTS();
+
+  currentBtn = btn;
+  btn.classList.add('playing');
+  btn.querySelector('.icon').textContent = '⏸';
+
+  const nowPlaying = document.getElementById('nowPlaying');
+  const fp = document.getElementById('floatingPlayer');
+  nowPlaying.classList.add('show');
+  fp.classList.add('show');
+
+  // ── 핵심 전략: 텍스트 전체를 단 하나의 utterance로 읽기
+  // 분리 자체를 없애면 마지막 부분이 잘릴 이유가 없음
+  // 단, iOS 14초 자동중단 버그 때문에 keepalive로 보완
+  const activeBtn = btn;
+
+  function doSpeak(voices) {
+    // 1순위: 한국어 음성
+    // 2순위: 음성이 없으면 기기 기본 음성으로라도 재생 (lang만 설정)
+    const koVoice = voices.find(v => v.lang === 'ko-KR') ||
+                    voices.find(v => v.lang.startsWith('ko'));
+
+    // 한국어 음성이 없을 때 안내 (최초 1회만)
+    if (!koVoice && voices.length > 0 && !window._koVoiceWarned) {
+      window._koVoiceWarned = true;
+      const nowPlayingText = document.getElementById('nowPlayingText');
+      if (nowPlayingText) nowPlayingText.textContent = '⚠️ 한국어 음성 미설치 — 기본 음성으로 재생';
+    }
+
+    const utt = new SpeechSynthesisUtterance(text);
+    utt.lang = 'ko-KR';
+    utt.rate = ttsSpeed;
+    utt.pitch = 1.0;
+    utt.volume = 1.0;
+    // koVoice 있으면 지정, 없으면 lang만으로 시도 (기기 기본 음성 사용)
+    if (koVoice) utt.voice = koVoice;
+    currentUtterance = utt;
+
+    utt.onend = () => {
+      if (currentBtn !== activeBtn) return;
+      resetBtn(activeBtn);
+      nowPlaying.classList.remove('show');
+      fp.classList.remove('show');
+      currentBtn = null;
+      stopKeepAlive();
+    };
+    utt.onerror = (e) => {
+      if (e.error === 'interrupted' || e.error === 'canceled') return;
+      if (currentBtn !== activeBtn) return;
+      resetBtn(activeBtn);
+      nowPlaying.classList.remove('show');
+      fp.classList.remove('show');
+      currentBtn = null;
+      stopKeepAlive();
+    };
+
+    startKeepAlive();
+    speechSynthesis.speak(utt);
+  }
+
+  // 목소리 로드 보장 후 발화
+  const voices = speechSynthesis.getVoices();
+  if (voices.length > 0) {
+    doSpeak(voices);
+  } else {
+    let fired = false;
+    const handler = () => {
+      speechSynthesis.removeEventListener('voiceschanged', handler);
+      if (fired) return;
+      fired = true;
+      doSpeak(speechSynthesis.getVoices());
+    };
+    speechSynthesis.addEventListener('voiceschanged', handler);
+    setTimeout(() => {
+      if (fired) return;
+      fired = true;
+      doSpeak(speechSynthesis.getVoices());
+    }, 500);
+  }
+}
+
+function resetBtn(btn) {
+  if (!btn) return;
+  btn.classList.remove('playing');
+  btn.querySelector('.icon').textContent = '🔊';
+}
+
+function stopTTS() {
+  stopKeepAlive();
+  speechSynthesis.cancel();
+  if (currentBtn) resetBtn(currentBtn);
+  currentBtn = null;
+  currentUtterance = null;
+  const np = document.getElementById('nowPlaying');
+  const fp = document.getElementById('floatingPlayer');
+  if (np) np.classList.remove('show');
+  if (fp) fp.classList.remove('show');
+}
+
+// 진단 함수
+function runDiag() {
+  const hasTTS = 'speechSynthesis' in window;
+  const voices = hasTTS ? speechSynthesis.getVoices() : [];
+  const hasKo = voices.some(v => v.lang.startsWith('ko'));
+  const voiceList = voices.slice(0,5).map(v => v.lang + ':' + v.name.substring(0,10)).join(', ');
+  const ua = navigator.userAgent.substring(0, 100);
+  alert(
+    'TTS지원: ' + (hasTTS ? 'YES' : 'NO') + '\n' +
+    '한국어음성: ' + (hasKo ? 'YES' : 'NO') + '\n' +
+    '총음성수: ' + voices.length + '\n' +
+    '음성목록: ' + (voiceList || '없음') + '\n' +
+    'UA: ' + ua
+  );
+}
+
+// 음성 로드 후 한국어 음성 없으면 안내 배너 표시
+function checkKoVoice() {
+  const voices = speechSynthesis.getVoices();
+  if (voices.length === 0) return;
+  const hasKo = voices.some(v => v.lang === 'ko-KR' || v.lang.startsWith('ko'));
+  if (!hasKo) {
+    const banner = document.getElementById('ko-voice-banner');
+    if (banner) banner.style.display = 'block';
+  }
+}
+if ('speechSynthesis' in window) {
+  speechSynthesis.getVoices();
+  speechSynthesis.onvoiceschanged = () => {
+    speechSynthesis.getVoices();
+    checkKoVoice();
+  };
+  setTimeout(checkKoVoice, 1000);
+}
+
 // ── 탭 전환 ──
 document.querySelectorAll('.tab-btn').forEach(btn => {
   btn.addEventListener('click', () => {
+    stopTTS();
+    // 안내 문구 숨기기
+    const hint = document.getElementById('tabHint');
+    if (hint) hint.style.display = 'none';
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
     document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
     btn.classList.add('active');
     document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
-    stopAudio();
+    window.scrollTo({ top: document.querySelector('.tab-nav').offsetTop - 1, behavior: 'smooth' });
   });
 });
 
-// ── MP3 오디오 엔진 ──
-let _audio = null;
-let _nowLabel = '';
-
-// 카드ID → MP3 파일번호 매핑
-const CARD_MP3 = {
-  tk1:'01', tk2:'02', tk3:'03', tk4:'04',
-  em1:'05', em2:'06', em3:'07', em4:'08', em5:'09', em6:'10', em7:'11',
-  at1:'12', at2:'13', at3:'14', at4:'15', at5:'16', at6:'17', at7:'18', at8:'19'
-};
-
-// 탭 전체 재생 목록
-const TAB_MP3 = {
-  token: ['01','02','03','04'],
-  embed: ['05','06','07','08','09','10','11'],
-  attention: ['12','13','14','15','16','17','18','19']
-};
-
-let _queue = [];
-let _playing = false;
-
-function stopAudio() {
-  _playing = false;
-  _queue = [];
-  if (_audio) {
-    _audio.pause();
-    _audio.currentTime = 0;
-    _audio = null;
-  }
-  document.getElementById('nowPlaying').classList.remove('show');
-}
-
-function playQueue(fileNums, label) {
-  stopAudio();
-  _queue = fileNums.slice();
-  _playing = true;
-  _nowLabel = label;
-  playNext();
-}
-
-function playNext() {
-  if (!_playing || _queue.length === 0) {
-    document.getElementById('nowPlaying').classList.remove('show');
-    _playing = false;
-    return;
-  }
-  const num = _queue.shift();
-  const src = 'audio/' + num + '.mp3';
-  document.getElementById('nowText').textContent = _nowLabel + ' 재생 중...';
-  document.getElementById('nowPlaying').classList.add('show');
-  _audio = new Audio(src);
-  _audio.onended = () => { if (_playing) playNext(); };
-  _audio.onerror = () => {
-    showToast('⚠️ ' + src + ' 파일을 찾을 수 없습니다');
-    if (_playing) playNext();
-  };
-  _audio.play().catch(() => {
-    showToast('⚠️ 재생 오류: ' + src);
-    if (_playing) playNext();
-  });
-}
-
-function speakCard(cardId) {
-  const num = CARD_MP3[cardId];
-  if (!num) return;
-  playQueue([num], '카드 ' + num);
-}
-
-function speakTab(tabId) {
-  const nums = TAB_MP3[tabId];
-  if (!nums) return;
-  const labels = {token:'🧩 토큰화', embed:'🔢 임베딩', attention:'🔦 어텐션'};
-  playQueue(nums, labels[tabId] || tabId);
-}
-
-// 속도 버튼 — MP3라 속도 조절 불필요하지만 UI 유지
-function setSpeed(v, btn) {
-  if (_audio) _audio.playbackRate = v;
-  document.querySelectorAll('.speed-btn').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-}
-
-function stopSpeech() { stopAudio(); }  // 기존 호출 호환
-
-// 핵심정리 탭 — 설명 버튼 (미리 저장된 텍스트 표시 + MP3 재생)
-const answers = {
-  token_why: { mp3: ['01','02','03'], text: '토큰화란 문장을 분석 가능한 작은 조각으로 나누는 작업입니다. AI는 문장 전체를 한 번에 처리할 수 없어서 반드시 이 단계가 필요합니다. 레고 블록처럼 10만 개의 조각으로 무한한 표현이 가능합니다.' },
-  embed_what: { mp3: ['05','06','07','08'], text: '임베딩은 단어를 의미 있는 숫자로 변환하는 방법입니다. 사랑 = [0.8, 0.9, −0.1, ...] 처럼 4096개의 숫자 패턴이 의미를 담습니다. 비슷한 패턴 = 비슷한 의미입니다.' },
-  attention_what: { mp3: ['12','13','14'], text: '어텐션은 지금 필요한 정보에 더 큰 비중을 두는 방식입니다. "다음 말을 만들기 위해 앞의 어떤 단어가 얼마나 도움이 되는가?"를 수천, 수만 번 숫자로 계산합니다.' },
-  hallucination: { mp3: ['16'], text: '할루시네이션은 AI가 거짓말하려는 게 아닙니다. 질문이 모호하면 엉뚱한 단어에 집중하고, 정보가 부족하면 그럴듯하게 채우고, 대화가 길어지면 처음 조건을 잊습니다.' },
-  prompt_tip: { mp3: ['04','11','18'], text: '토큰 원칙: 간결하고 명확하게. 임베딩 원칙: 구체적인 단어로 좌표를 좁혀라. 어텐션 원칙: 중요한 조건을 앞과 뒤에 모두 넣어라.' }
-};
-
-function askAI(key, btn) {
-  const data = answers[key];
-  if (!data) return;
-  const box = document.getElementById('resp-' + key);
-  const textEl = document.getElementById('text-' + key);
-  box.classList.add('show');
-  textEl.textContent = data.text;
-  playQueue(data.mp3, '강사 설명');
-  btn.querySelector('.eb-arr').textContent = '▶';
-}
-
-function speakEl(id, label) {
-  // 핵심정리 탭 "다시 듣기" — 해당 key의 mp3 재생
-  const key = id.replace('text-', '');
-  const data = answers[key];
-  if (data) playQueue(data.mp3, label);
-}
-
 // ── 퀴즈 ──
-let score = 0;
-const feedbacks = {
-  correct: ['정답입니다! 🎉', '맞아요! 잘 기억하셨네요 👍', '정확합니다! ✅'],
-  wrong: ['아쉬워요. 다시 생각해보세요 🤔', '틀렸습니다. 내용을 다시 확인해보세요 📖', '아직 한 번 더! 복습해보세요 💪']
-};
-
-function answer(qid, btn, correct) {
-  const card = document.getElementById(qid);
+function answerQuiz(btn, isCorrect) {
+  const card = btn.closest('.quiz-card');
   if (card.dataset.answered) return;
   card.dataset.answered = '1';
-  const fb = document.getElementById(qid + '-fb');
-  btn.classList.add(correct ? 'correct' : 'wrong');
-  card.querySelectorAll('.q-opt').forEach(b => b.disabled = true);
-  if (correct) {
-    score++;
-    const msgs = feedbacks.correct;
-    fb.textContent = '✅ ' + msgs[Math.floor(Math.random()*msgs.length)];
-    fb.className = 'q-fb show ok';
-    playChime();
+  const opts = card.querySelectorAll('.quiz-opt');
+  opts.forEach(o => o.disabled = true);
+  const resultEl = card.querySelector('.quiz-result');
+  if (isCorrect) {
+    btn.classList.add('correct');
+    resultEl.className = 'quiz-result ok';
+    resultEl.textContent = '✅ 정답입니다!';
   } else {
-    const msgs = feedbacks.wrong;
-    fb.textContent = '❌ ' + msgs[Math.floor(Math.random()*msgs.length)];
-    fb.className = 'q-fb show ng';
-    playBuzz();
+    btn.classList.add('wrong');
+    resultEl.className = 'quiz-result ng';
+    resultEl.textContent = '❌ 오답입니다. 정답을 확인하세요.';
+    opts.forEach(o => {
+      if (o.onclick.toString().includes('true')) o.classList.add('correct');
+    });
   }
-  document.getElementById('scoreNum').textContent = score;
-  const pct = Math.round(score / 8 * 100);
-  document.getElementById('scoreMsg').textContent =
-    pct >= 87 ? '훌륭합니다! 완벽에 가깝네요 🌟' :
-    pct >= 62 ? '잘 하고 있어요! 조금만 더 😊' :
-    '계속 복습하면 금방 익혀요 💪';
 }
 
-function resetQuiz() {
-  score = 0;
-  document.getElementById('scoreNum').textContent = '0';
-  document.getElementById('scoreMsg').textContent = '문제를 풀어보세요!';
-  document.querySelectorAll('.quiz-card').forEach(c => {
-    delete c.dataset.answered;
-    c.querySelectorAll('.q-opt').forEach(b => {
-      b.disabled = false;
-      b.classList.remove('correct','wrong');
-    });
-    const fb = c.querySelector('.q-fb');
-    fb.className = 'q-fb';
-    fb.textContent = '';
+// TTS 미지원 안내
+if (!('speechSynthesis' in window)) {
+  document.querySelectorAll('.tts-btn').forEach(btn => {
+    btn.style.background = '#eee';
+    btn.style.color = '#aaa';
+    btn.style.borderColor = '#ddd';
+    btn.title = '이 브라우저에서는 음성이 지원되지 않습니다';
   });
-  showToast('퀴즈가 초기화됐어요! 다시 풀어보세요 😊');
-}
-
-// ── 효과음 ──
-function playChime() {
-  try {
-    const ctx = new (window.AudioContext || window.webkitAudioContext)();
-    [[523,0,0.15],[659,0.1,0.15],[784,0.2,0.2]].forEach(([f,s,d]) => {
-      const o = ctx.createOscillator(), g = ctx.createGain();
-      o.frequency.value = f; o.type = 'sine';
-      g.gain.setValueAtTime(0.3, ctx.currentTime + s);
-      g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + s + d);
-      o.connect(g); g.connect(ctx.destination);
-      o.start(ctx.currentTime + s); o.stop(ctx.currentTime + s + d);
-    });
-  } catch(e) {}
-}
-
-function playBuzz() {
-  try {
-    const ctx = new (window.AudioContext || window.webkitAudioContext)();
-    const o = ctx.createOscillator(), g = ctx.createGain();
-    o.type = 'sine'; o.frequency.value = 200;
-    g.gain.setValueAtTime(0.35, ctx.currentTime);
-    g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.55);
-    o.connect(g); g.connect(ctx.destination);
-    o.start(ctx.currentTime); o.stop(ctx.currentTime + 0.6);
-  } catch(e) {}
-}
-
-// ── 도우미 ──
-const chipSels = {};
-function selChip(group, value, btn) {
-  chipSels[group] = value;
-  document.getElementById('g-' + group).querySelectorAll('.chip').forEach(c => c.classList.remove('on'));
-  btn.classList.add('on');
-}
-
-let genMsg = '';
-const templates = {
-  '토큰과 임베딩 차이': 'AI가 언어를 처리할 때 토큰화와 임베딩이 각각 무엇이고 어떻게 다른지',
-  '어텐션 쉬운 설명': 'AI의 어텐션(Attention) 메커니즘이 무엇인지',
-  '할루시네이션 예방': 'AI 할루시네이션이 발생하는 원인과 이를 줄이기 위한 프롬프트 작성법을',
-  '설교 프롬프트 작성': '목회자가 설교 준비에 AI를 활용할 때 효과적인 프롬프트 작성 방법을',
-  '의미 공간 비유 설명': '임베딩의 의미 공간(Semantic Space)이 무엇인지'
-};
-
-function makeMsg() {
-  const { topic, style } = chipSels;
-  if (!topic || !style) { showToast('주제와 방식을 모두 골라주세요! 😊'); return; }
-  genMsg = templates[topic] + ' ' + style + ' 설명해주세요.';
-  document.getElementById('msg-result').textContent = '📝 ' + genMsg;
-  document.getElementById('msg-copy-btn').style.display = 'block';
-  showToast('메시지가 만들어졌어요! 복사해서 붙여넣으세요 ✨');
-}
-
-function copyMsg() {
-  if (!genMsg) return;
-  navigator.clipboard.writeText(genMsg).then(() => showToast('복사됐어요! ChatGPT / Claude에 붙여넣기 해보세요 😊'));
-}
-
-// ── 토스트 ──
-function showToast(msg) {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 2800);
+  document.querySelector('.tts-global').innerHTML = '<span style="color:#e06000;font-weight:700;">⚠️ 이 기기에서는 음성 기능이 지원되지 않습니다</span>';
 }
 </script>
-</body></html>
+
+<script>
+// WebView TTS 활성화 — 사용자 터치 후 speechSynthesis 언락
+function startApp() {
+  // 빈 utterance로 TTS 엔진 강제 활성화
+  if ('speechSynthesis' in window) {
+    const u = new SpeechSynthesisUtterance('');
+    speechSynthesis.speak(u);
+    speechSynthesis.cancel();
+  }
+  // 팝업 닫기
+  const overlay = document.getElementById('start-overlay');
+  if (overlay) overlay.style.display = 'none';
+}
+
+// PWA 서비스워커 등록
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/ai-1/sw_ai.js').catch(() => {});
+  });
+}
+
+// Android Chrome 설치 배너
+let deferredPrompt;
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  document.getElementById('install-banner').style.display = 'flex';
+});
+function installApp() {
+  if (!deferredPrompt) return;
+  deferredPrompt.prompt();
+  deferredPrompt.userChoice.then(() => {
+    deferredPrompt = null;
+    document.getElementById('install-banner').style.display = 'none';
+  });
+}
+window.addEventListener('appinstalled', () => {
+  document.getElementById('install-banner').style.display = 'none';
+});
+
+// iOS Safari 설치 배너
+const isIOSDevice = /iPad|iPhone|iPod/.test(navigator.userAgent);
+const isInStandaloneMode = window.navigator.standalone;
+if (isIOSDevice && !isInStandaloneMode) {
+  setTimeout(() => {
+    document.getElementById('ios-banner').style.display = 'block';
+  }, 2000);
+}
+</script>
+</body>
+</html>
