@@ -492,7 +492,7 @@ let currentAudio = null;
 let speed = 0.9;
 const audioCache = {};
 
-const TTS_KEY = 'AIzaSyDT9NjdbZ7huPK7efjwe2kHJlqpBYxYycY';
+const TTS_KEY = 'AIzaSyCPMK6KaFZVNnRMOuWBIDTsYrgMGSPjLc4';
 const TTS_VOICE = 'ko-KR-Standard-D'; // Algenib — 한국어 남성
 
 async function fetchTTS(text) {
@@ -653,19 +653,16 @@ function stopAll() {
 
 function onFinished() {
   if (currentChapter < CHAPTERS.length - 1) {
-    // 다음 챕터로 자동 이동
     currentChapter++;
     currentPara = -1;
     renderChapter();
     updateNav();
     updateFooter();
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-    // 잠시 후 재생 시작 (챕터 전환 간격)
+    // 스크롤 없이 조용히 넘어간 후 재생
     setTimeout(() => {
       if (isPlaying) speakPara(0);
-    }, 1200);
+    }, 800);
   } else {
-    // 마지막 챕터(결론) 끝
     isPlaying = false;
     document.getElementById('btnPlay').textContent = '▶ 읽기 시작';
     document.getElementById('btnPlay').classList.remove('playing');
